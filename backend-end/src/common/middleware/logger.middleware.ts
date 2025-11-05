@@ -27,7 +27,7 @@ export class HttpLoggerMiddleware implements NestMiddleware {
       const endTime = process.hrtime.bigint();
       const durationMs = Number(endTime - startTime) / 1_000_000; // 纳秒转毫秒
 
-      if (this.configService.get('app.env') === 'production') {
+      if (this.configService.get('app.env') !== 'production') {
         this.logger.log(
           `Request completed`,
           `${req.method} ${req.originalUrl}`,

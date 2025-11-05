@@ -12,6 +12,7 @@ import type {
 import { stringify } from "qs";
 import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
+import { message } from "@/utils/message";
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 const defaultConfig: AxiosRequestConfig = {
@@ -160,6 +161,9 @@ class PureHttp {
           resolve(response);
         })
         .catch(error => {
+          message(error?.response?.data?.message ?? error.message, {
+            type: "error"
+          });
           reject(error);
         });
     });

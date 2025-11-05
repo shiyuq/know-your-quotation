@@ -1,15 +1,16 @@
-import dayjs from "dayjs";
-import { readdir, stat } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
-import { sum, formatBytes } from "@pureadmin/utils";
 import {
-  name,
-  version,
-  engines,
   dependencies,
-  devDependencies
+  devDependencies,
+  engines,
+  name,
+  version
 } from "../package.json";
+import { dirname, resolve } from "node:path";
+import { formatBytes, sum } from "@pureadmin/utils";
+import { readdir, stat } from "node:fs";
+
+import dayjs from "dayjs";
+import { fileURLToPath } from "node:url";
 
 /** 启动`node`进程时所在工作目录的绝对路径 */
 const root: string = process.cwd();
@@ -52,6 +53,7 @@ const wrapperEnv = (envConf: Recordable): ViteEnv => {
   // 默认值
   const ret: ViteEnv = {
     VITE_PORT: 8848,
+    BACKEND_PORT: 3000,
     VITE_PUBLIC_PATH: "",
     VITE_ROUTER_HISTORY: "",
     VITE_CDN: false,
