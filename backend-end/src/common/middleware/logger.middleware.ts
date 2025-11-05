@@ -1,11 +1,14 @@
-import { Injectable, Ip, NestMiddleware } from '@nestjs/common';
+import { Injectable, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Request, Response } from 'express';
 
+import { ConfigService } from '@nestjs/config';
 import { StructuredLogger } from '@/common';
 import { randomUUID } from 'crypto';
 
 @Injectable()
 export class HttpLoggerMiddleware implements NestMiddleware {
+  constructor(private readonly configService: ConfigService) {}
+
   private readonly logger = new StructuredLogger(HttpLoggerMiddleware.name);
 
   use(req: Request, res: Response, next: NextFunction): void {
@@ -15,46 +18,38 @@ export class HttpLoggerMiddleware implements NestMiddleware {
     // 将 traceId 挂在请求对象上（方便下游日志打点用）
     (req as any).traceId = traceId;
 
-    const safeBody = this.sanitizeBody(req.body);
-    const safeQuery = req.query;
+    const safeBody = this.sanitizeBody(req.body) || {};
+    const safeQuery = req.query || {};
 
-    // 请求日志
-    this.logger.log(`Incoming request`, `${req.method} ${req.originalUrl}`, {
-      traceId,
-      request: {
-        method: req.method,
-        url: req.originalUrl,
-        query: safeQuery,
-        body: safeBody,
-      },
-      client: {
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
-      },
-    });
-
+    // 请求日志，prod环境才打日志
     // 等响应结束后打印结果日志
     res.on('finish', () => {
       const endTime = process.hrtime.bigint();
       const durationMs = Number(endTime - startTime) / 1_000_000; // 纳秒转毫秒
 
-      this.logger.log(`Request completed`, `${req.method} ${req.originalUrl}`, {
-        traceId,
-        request: {
-          method: req.method,
-          url: req.originalUrl,
-          query: safeQuery,
-          body: safeBody,
-        },
-        response: {
-          statusCode: res.statusCode,
-          duration: durationMs.toFixed(2),
-        },
-        client: {
-          ip: req.ip,
-          userAgent: req.headers['user-agent'],
-        },
-      });
+      if (this.configService.get('app.env') === 'production') {
+        this.logger.log(
+          `Request completed`,
+          `${req.method} ${req.originalUrl}`,
+          {
+            traceId,
+            request: {
+              method: req.method,
+              url: req.originalUrl,
+              query: JSON.stringify(safeQuery),
+              body: JSON.stringify(safeBody),
+            },
+            response: {
+              statusCode: res.statusCode,
+              duration: durationMs.toFixed(2),
+            },
+            client: {
+              ip: req.ip,
+              userAgent: req.headers['user-agent'],
+            },
+          },
+        );
+      }
     });
 
     next();

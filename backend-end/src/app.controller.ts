@@ -7,6 +7,6 @@ export class AppController {
   @Public()
   @Get()
   root() {
-    return 'hello world111';
+    return 'hello world';
   }
 }
