@@ -1,5 +1,5 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-
+import { BusinessErrorHelper } from '@/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '@/modules/users/services/users.service';
 
@@ -16,7 +16,7 @@ export class AuthService {
   ): Promise<{ access_token: string }> {
     const user = await this.usersService.findOne(username);
     if (user?.password !== pass) {
-      throw new UnauthorizedException();
+      return BusinessErrorHelper.todoNotFound();
     }
     const payload = {
       sub: user.userId,

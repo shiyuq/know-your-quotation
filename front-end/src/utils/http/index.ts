@@ -157,8 +157,12 @@ class PureHttp {
     return new Promise((resolve, reject) => {
       PureHttp.axiosInstance
         .request(config)
-        .then((response: undefined) => {
-          resolve(response);
+        .then((response: any) => {
+          if (response.status !== 200) {
+            message(response.message, { type: "error" });
+            return reject(new Error(response.message));
+          }
+          resolve(response.data);
         })
         .catch(error => {
           message(error?.response?.data?.message ?? error.message, {
