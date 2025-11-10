@@ -3,17 +3,18 @@ import {
   Catch,
   ExceptionFilter,
   HttpException,
-  Injectable,
-  NestMiddleware,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 
 import { BusinessException } from './business-exception-filter';
+import { ConfigService } from '@nestjs/config';
 import { GqlArgumentsHost } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
+import { QueryFailedError } from 'typeorm';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  constructor(private readonly configService: ConfigService) {}
   catch(exception: unknown, host: ArgumentsHost) {
     let code = 50000;
     let message = '系统异常，请稍后重试';
@@ -23,6 +24,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
       code = exception.code;
       message = (exception.getResponse() as any).message;
       status = 200; // 业务异常统一返回 200
+    } else if (exception instanceof QueryFailedError) {
+      if (this.configService.get('app.env') !== 'production') {
+        message = exception.message || message;
+      } else {
+        message = '系统异常，请稍后重试';
+      }
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
       const res: any = exception.getResponse();

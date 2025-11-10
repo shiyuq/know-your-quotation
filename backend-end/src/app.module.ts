@@ -4,11 +4,16 @@ import {
   AllExceptionsFilter,
   AuthGuard,
   HttpLoggerMiddleware,
-  RolesGuard,
   TransformInterceptor,
 } from '@/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { ArticleModule, AuthModule, TodoModule, UsersModule } from '@/modules';
+import {
+  ArticleModule,
+  AuthModule,
+  TodoModule,
+  UsersModule,
+  UtilModule,
+} from '@/modules';
 import {
   ClassSerializerInterceptor,
   MiddlewareConsumer,
@@ -70,7 +75,7 @@ import { jwtConstants } from '@/constants';
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,
-      signOptions: { expiresIn: '1d' },
+      signOptions: { expiresIn: '7d' },
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
@@ -83,6 +88,7 @@ import { jwtConstants } from '@/constants';
     AuthModule,
     UsersModule,
     ArticleModule,
+    UtilModule,
   ],
   controllers: [AppController],
   providers: [
@@ -112,10 +118,6 @@ import { jwtConstants } from '@/constants';
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
-    },
-    {
-      provide: APP_GUARD,
-      useClass: RolesGuard,
     },
   ],
 })

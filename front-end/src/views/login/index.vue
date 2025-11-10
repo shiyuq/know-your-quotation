@@ -37,8 +37,8 @@ dataThemeChange(overallStyle.value);
 const { title } = useNav();
 
 const ruleForm = reactive({
-  username: "admin",
-  password: "admin123"
+  username: "1543082564@qq.com",
+  password: "shiyuq"
 });
 
 const onLogin = async (formEl: FormInstance | undefined) => {
@@ -52,7 +52,7 @@ const onLogin = async (formEl: FormInstance | undefined) => {
           password: ruleForm.password
         })
         .then(res => {
-          if (res.success) {
+          if (res.accessToken) {
             // 获取后端路由
             return initRouter().then(() => {
               disabled.value = true;
@@ -90,7 +90,7 @@ useEventListener(document, "keydown", ({ code }) => {
 
 <template>
   <div class="select-none">
-    <img :src="bg" class="wave" />
+    <img :src="bg" class="wave" alt="" />
     <div class="flex-c absolute right-5 top-3">
       <!-- 主题 -->
       <el-switch

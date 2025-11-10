@@ -10,6 +10,25 @@
 2. cd backend-end && npm install && npm run start:dev
 3. cd front-end && npm install && npm run dev
 
+## 脚本迁移
+
+```bash
+# 生成迁移文件
+# git bash command
+./autoMigrate.sh
+
+# 将迁移文件应用到数据库
+./autoExport.sh
+```
+
+## TODO
+
+- [X] 权限控制
+- [ ] 登录注册
+- [ ] 产品管理
+- [ ] 客户管理
+- [ ] 报价管理
+
 ## 维护者
 
 [Jack](https://github.com/shiyuq)

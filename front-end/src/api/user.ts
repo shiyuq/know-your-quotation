@@ -20,6 +20,8 @@ export type UserResult = {
     /** `accessToken`的过期时间（格式'xxxx/xx/xx xx:xx:xx'） */
     expires: Date;
   };
+  accessToken: string;
+  role: string;
 };
 
 export type RefreshTokenResult = {

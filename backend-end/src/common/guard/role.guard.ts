@@ -1,3 +1,7 @@
+/**
+ * deprecated: 已弃用，使用 auth.guard.ts 代替
+ */
+
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 
 import { GqlExecutionContext } from '@nestjs/graphql';

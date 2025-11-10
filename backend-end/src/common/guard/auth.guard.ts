@@ -4,13 +4,15 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
+import { GlobalRole, RolePermissions, jwtConstants } from '@/constants';
 
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { JwtService } from '@nestjs/jwt';
+import { Permisson } from '../decorator/permisson.decorator';
 import { Public } from '../decorator/public.decorator';
 import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
-import { jwtConstants } from '@/constants';
+import _ from 'lodash';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -25,10 +27,7 @@ export class AuthGuard implements CanActivate {
       return true;
     }
 
-    const request =
-      (context.getType() as string) === 'graphql'
-        ? GqlExecutionContext.create(context).getContext().req
-        : context.switchToHttp().getRequest();
+    const request = this.getRequest(context);
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
@@ -43,7 +42,31 @@ export class AuthGuard implements CanActivate {
     } catch {
       throw new UnauthorizedException();
     }
+
+    // 获取用户信息，如果没有获取到，抛出异常
+    const user: { role: GlobalRole } = request.user;
+
+    // 如果是平台管理员，直接放行
+    if (user.role === GlobalRole.PLATFORM_ADMIN) return true;
+
+    // 如果是普通用户，检查权限
+    const permission = this.reflector.get(Permisson, context.getHandler());
+
+    // 如果没有权限信息，直接放行
+    if (!permission) return true;
+
+    // 如果无权限，不放行
+    if (!_.includes(RolePermissions[user.role], permission)) {
+      return false;
+    }
+
     return true;
+  }
+
+  private getRequest(context: ExecutionContext) {
+    return (context.getType() as string) === 'graphql'
+      ? GqlExecutionContext.create(context).getContext().req
+      : context.switchToHttp().getRequest();
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

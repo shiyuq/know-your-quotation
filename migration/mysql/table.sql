@@ -88,12 +88,12 @@ CREATE TABLE `user` (
 	`password` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_0900_ai_ci',
 	`salt` VARCHAR(255) NOT NULL COLLATE 'utf8mb4_0900_ai_ci',
 	`phone` VARCHAR(20) NULL DEFAULT NULL COLLATE 'utf8mb4_0900_ai_ci',
-	`role` ENUM('boss','staff') NOT NULL DEFAULT 'staff' COLLATE 'utf8mb4_0900_ai_ci',
+	`role` ENUM('boss','staff', 'platform_admin') NOT NULL DEFAULT 'staff' COLLATE 'utf8mb4_0900_ai_ci',
 	`status` TINYINT(3) NOT NULL DEFAULT '1',
 	`create_time` DATETIME NOT NULL DEFAULT 'CURRENT_TIMESTAMP',
 	`update_time` DATETIME NOT NULL DEFAULT 'CURRENT_TIMESTAMP' ON UPDATE CURRENT_TIMESTAMP,
 	PRIMARY KEY (`id`) USING BTREE,
-	UNIQUE INDEX `unique_tenant_user` (`tenant_id`, `username`) USING BTREE,
+	UNIQUE INDEX `unique_tenant_user` (`username`) USING BTREE,
 	INDEX `idx_tenant` (`tenant_id`) USING BTREE,
 	INDEX `status` (`status`) USING BTREE
 )

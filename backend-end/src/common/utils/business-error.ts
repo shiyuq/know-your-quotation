@@ -1,13 +1,13 @@
+// business-error.ts
+
 import { BusinessException } from '../filters/business-exception-filter';
-import { TodoErrorCode } from '@/constants';
+import { TodoErrorHelper } from './error/todo-error';
+import { UserErrorHelper } from './error/user-error';
 
 export class BusinessErrorHelper {
-  // TODO模块
-  static todoNotFound(): never {
-    throw new BusinessException(TodoErrorCode.TODO_NOT_FOUND, 'TODO不存在');
-  }
+  static Todo = TodoErrorHelper;
+  static User = UserErrorHelper;
 
-  // 可扩展：通用方法
   static throw(code: number, message: string): never {
     throw new BusinessException(code, message);
   }

@@ -33,7 +33,9 @@ export class TodoService {
 
   async update(id: number, updateTodoDto: UpdateTodoDto) {
     const entity = await this.todoRepository.findOneBy({ id });
-    if (!entity) BusinessErrorHelper.todoNotFound();
+    if (!entity) {
+      return BusinessErrorHelper.Todo.todoNotFound();
+    }
     Object.assign(entity, updateTodoDto);
     return this.todoRepository.save(entity);
   }
