@@ -13,6 +13,7 @@ import {
   TodoModule,
   UsersModule,
   UtilModule,
+  ProductModule,
 } from '@/modules';
 import {
   ClassSerializerInterceptor,
@@ -89,6 +90,7 @@ import { jwtConstants } from '@/constants';
     UsersModule,
     ArticleModule,
     UtilModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [
