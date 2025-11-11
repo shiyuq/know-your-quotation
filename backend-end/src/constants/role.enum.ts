@@ -12,10 +12,11 @@ export enum GlobalRole {
 export enum PermissonEnum {
   authSignIn = 'auth:signIn',
   authRegisterTenant = 'auth:registerTenant',
+  leadinProduct = 'leadin:product',
 }
 
 export const RolePermissions: Record<GlobalRole, string[]> = {
   [GlobalRole.PLATFORM_ADMIN]: [],
-  [GlobalRole.BOSS]: ['auth:signIn'],
-  [GlobalRole.STAFF]: ['auth:signIn'],
+  [GlobalRole.BOSS]: [PermissonEnum.authSignIn, PermissonEnum.leadinProduct],
+  [GlobalRole.STAFF]: [PermissonEnum.authSignIn],
 };

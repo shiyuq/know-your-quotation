@@ -10,10 +10,10 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import {
   ArticleModule,
   AuthModule,
+  ProductModule,
   TodoModule,
   UsersModule,
   UtilModule,
-  ProductModule,
 } from '@/modules';
 import {
   ClassSerializerInterceptor,
@@ -104,7 +104,7 @@ import { jwtConstants } from '@/constants';
         return new ValidationPipe({
           transform: true,
           whitelist: true,
-          forbidNonWhitelisted: true,
+          forbidNonWhitelisted: false,
           disableErrorMessages: false,
         });
       },

@@ -38,6 +38,7 @@
     "class-validator": "^0.14.2",
     "cookie-parser": "^1.4.7",
     "csrf-csrf": "^4.0.3",
+    "exceljs": "^4.4.0",
     "graphql": "^16.11.0",
     "helmet": "^8.1.0",
     "joi": "^18.0.1",
@@ -47,6 +48,7 @@
     "mysql2": "^3.14.4",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
+    "sharp": "^0.34.5",
     "ts-morph": "^25.0.1",
     "typeorm": "^0.3.26"
   },
@@ -61,6 +63,7 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/lodash": "^4.17.20",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.10.7",
     "@types/supertest": "^6.0.2",
     "cross-env": "^10.0.0",

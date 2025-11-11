@@ -27,8 +27,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else if (exception instanceof QueryFailedError) {
       if (this.configService.get('app.env') !== 'production') {
         message = exception.message || message;
-      } else {
-        message = '系统异常，请稍后重试';
       }
     } else if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -49,7 +47,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         code = 10001;
         message = Array.isArray(res?.message)
           ? res.message.join(', ')
-          : '参数校验失败';
+          : res.message || '参数校验失败';
       }
     } else if (exception instanceof Error) {
       message = exception.message || message;
