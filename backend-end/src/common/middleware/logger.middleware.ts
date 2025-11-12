@@ -33,6 +33,8 @@ export class HttpLoggerMiddleware implements NestMiddleware {
           `${req.method} ${req.originalUrl}`,
           {
             traceId,
+            tenantId: (req as any).user?.tenantId || '',
+            userId: (req as any).user?.sub || '',
             request: {
               method: req.method,
               url: req.originalUrl,

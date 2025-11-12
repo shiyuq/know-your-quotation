@@ -20,7 +20,7 @@ export class AuthService {
     @InjectRepository(TenantEntity)
     private readonly tenantRepository: Repository<TenantEntity>,
 
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
 
     private readonly utilService: UtilService,
   ) {}

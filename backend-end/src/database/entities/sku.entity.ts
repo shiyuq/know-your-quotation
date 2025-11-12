@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { PricingType, ProductStatus } from '@/constants';
 
-import { ProductStatus } from '@/constants';
 import { Transform } from 'class-transformer';
 import moment from 'moment';
 
@@ -17,6 +17,12 @@ export class SKUEntity {
 
   @Column({ name: 'sku_code' })
   skuCode: string;
+
+  @Column({ name: 'pricing_type' })
+  pricingType: PricingType;
+
+  @Column({ name: 'attribute_value', nullable: true })
+  attributeValue: number;
 
   @Column({ name: 'desc' })
   desc: string;

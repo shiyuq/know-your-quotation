@@ -1,13 +1,23 @@
+import _ from 'lodash';
 import ExcelJS from 'exceljs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
-import { ProductStatus, ProductImportStatus } from '@/constants';
+import {
+  ProductStatus,
+  ProductImportStatus,
+  PricingType,
+  PricingImportType,
+} from '@/constants';
 import { Repository, DataSource } from 'typeorm';
 import { ProductEntity, ImageEntity, SKUEntity } from '@/database/entities';
 import { UtilService } from '@/modules/global/util/services/util.service';
+import { BusinessErrorHelper } from '@/common';
 
 interface LeadinProductRow {
-  name?: string;
+  name: string;
+  productDesc: string;
+  pricingType: PricingImportType;
+  attributeValue: number;
   tenantId: string;
   productId: string;
   imageId: string;
@@ -40,78 +50,68 @@ export class ProductService {
     await workbook.xlsx.load(buffer);
     const sheet = workbook.worksheets[0];
 
-    // 表头数据映射
-    const headerMap: Record<string, number> = {};
-    sheet.getRow(1).eachCell((cell, col) => {
-      headerMap[cell.text] = col;
-    });
-
     // 图片数据映射
-    const imageIdMap = new Map<number, any>(); // Excel row -> image buffer
-    sheet.getImages().forEach((image) => {
-      imageIdMap.set(
-        Math.round(image.range.tl.row) + 1,
-        workbook.getImage(image.imageId as any).buffer,
-      );
-    });
-    const result: SKUEntity[] = [];
-    const failedProducts: { code: string; reason: string }[] = [];
+    const images = _.chain(sheet.getImages())
+      .sort((a, b) => a.range.tl.row - b.range.tl.row)
+      .map((i) => workbook.getImage(i.imageId as any).buffer)
+      .value();
+
+    const products: LeadinProductRow[] = this.resolveProductFromExcel(
+      user,
+      sheet,
+    );
+
+    const uniqProductList = _.map(
+      _.uniqBy(products, (i) => i.name),
+      (i) => ({ name: i.name, productDesc: i.productDesc }),
+    );
+
+    if (images.length !== uniqProductList.length) {
+      return BusinessErrorHelper.Platform.fileAndImageCountNotMatch();
+    }
+
+    const result: any = [];
 
     await this.dataSource.transaction(async (manager) => {
+      // 事务内使用的仓库
       const productRepo = manager.getRepository(ProductEntity);
       const imageRepo = manager.getRepository(ImageEntity);
       const skuRepo = manager.getRepository(SKUEntity);
 
-      for (let rowIndex = 2; rowIndex <= sheet.rowCount; rowIndex++) {
-        const row = sheet.getRow(rowIndex);
-
-        const product: LeadinProductRow = {
-          name: row.getCell(headerMap['产品名称']).value as string,
-          skuCode: row.getCell(headerMap['产品型号']).value as string,
-          desc: row.getCell(headerMap['产品描述']).value as string,
-          unit: row.getCell(headerMap['产品单位']).value as string,
-          unitPrice: row.getCell(headerMap['产品价格']).value as number,
-          status: row.getCell(headerMap['产品状态'])
-            .value as ProductImportStatus,
-          tenantId: user.tenantId,
-          productId: '',
-          imageId: '',
-        };
-
-        // 如果没有数据提前退出
-        if (!product.skuCode) {
-          break;
-        }
-
-        const [productId, imageId] = await Promise.all([
+      const productIds = await Promise.all(
+        _.map(uniqProductList, async (product) =>
           this.saveProduct(
-            { tenantId: user.tenantId, name: String(product.name) },
+            {
+              tenantId: user.tenantId,
+              name: product.name,
+              desc: product.productDesc,
+            },
             productRepo,
           ),
+        ),
+      );
+      const imageIds = await Promise.all(
+        _.map(images, async (image) =>
           this.saveImage(
-            { tenantId: user.tenantId, buffer: imageIdMap.get(rowIndex) },
+            {
+              tenantId: user.tenantId,
+              buffer: image,
+            },
             imageRepo,
           ),
-        ]);
+        ),
+      );
 
-        if (!productId || !imageId) {
-          failedProducts.push({
-            code: product.skuCode,
-            reason: productId ? 'Missing imageId' : 'Missing productId',
-          });
-          continue;
-        }
-
-        product.imageId = imageId;
-        product.productId = productId;
-        delete product.name;
-
-        const skuInfo = await this.saveSKU(product, skuRepo);
-        result.push(skuInfo);
+      for (const item of products) {
+        const index = _.findIndex(uniqProductList, (i) => i.name === item.name);
+        item.imageId = imageIds[index];
+        item.productId = productIds[index];
+        const skuInfo = await this.saveSKU(item, skuRepo);
+        result.push(_.omit(skuInfo, ['tenantId', 'createTime', 'updateTime']));
       }
     });
 
-    return { failedProducts, successProducts: result };
+    return result;
   }
 
   private async saveSKU(
@@ -119,6 +119,8 @@ export class ProductService {
       tenantId,
       productId,
       imageId,
+      pricingType,
+      attributeValue,
       skuCode,
       desc,
       unit,
@@ -136,6 +138,14 @@ export class ProductService {
         desc,
         unit,
         unitPrice,
+        pricingType:
+          pricingType === PricingImportType.PriceByAttributeString
+            ? PricingType.PriceByAttribute
+            : PricingType.PriceByUnit,
+        attributeValue:
+          pricingType === PricingImportType.PriceByAttributeString
+            ? attributeValue
+            : undefined,
         status:
           status === ProductImportStatus.ValidString
             ? ProductStatus.Valid
@@ -153,6 +163,14 @@ export class ProductService {
       desc,
       unit,
       unitPrice,
+      pricingType:
+        pricingType === PricingImportType.PriceByAttributeString
+          ? PricingType.PriceByAttribute
+          : PricingType.PriceByUnit,
+      attributeValue:
+        pricingType === PricingImportType.PriceByAttributeString
+          ? attributeValue
+          : undefined,
       status:
         status === ProductImportStatus.ValidString
           ? ProductStatus.Valid
@@ -163,25 +181,30 @@ export class ProductService {
   }
 
   private async saveProduct(
-    { tenantId, name }: { tenantId: string; name: string },
+    { tenantId, name, desc }: { tenantId: string; name: string; desc: string },
     repo = this.productRepository,
   ): Promise<string> {
     // 2. 查数据库是否已有对应产品
     let product = await repo.findOne({
       where: { tenantId, name, status: ProductStatus.Valid },
     });
-    if (product) return product.id; // 已存在，复用 productId
+    if (product) {
+      product.desc = desc;
+      await repo.save(product);
+      return product.id;
+    }
 
     product = repo.create({
       tenantId,
       name,
+      desc,
     });
     await repo.save(product);
     return product.id;
   }
 
   private async saveImage(
-    { tenantId, buffer }: { tenantId: string; buffer: Buffer },
+    { tenantId, buffer }: { tenantId: string; buffer: any },
     repo = this.imageRepository,
   ): Promise<string> {
     // 1. 生成哈希
@@ -201,5 +224,42 @@ export class ProductService {
     });
     await repo.save(image);
     return image.id;
+  }
+
+  private resolveProductFromExcel(user: any, sheet: ExcelJS.Worksheet) {
+    // 表头数据映射
+    const headerMap: Record<string, number> = {};
+    sheet.getRow(1).eachCell((cell, col) => {
+      headerMap[cell.text] = col;
+    });
+
+    const products = [];
+    for (let rowIndex = 2; rowIndex <= sheet.rowCount; rowIndex++) {
+      const row = sheet.getRow(rowIndex);
+
+      const product = {
+        name: row.getCell(headerMap['产品名称']).value as string,
+        productDesc: row.getCell(headerMap['产品描述']).value as string,
+        pricingType: row.getCell(headerMap['计价方式'])
+          .value as PricingImportType,
+        skuCode: row.getCell(headerMap['产品型号']).value as string,
+        attributeValue: row.getCell(headerMap['产品属性']).value as number,
+        desc: row.getCell(headerMap['型号描述']).value as string,
+        unit: row.getCell(headerMap['产品单位']).value as string,
+        unitPrice: row.getCell(headerMap['产品价格']).value as number,
+        status: row.getCell(headerMap['产品状态']).value as ProductImportStatus,
+        tenantId: user.tenantId,
+        productId: '',
+        imageId: '',
+      };
+
+      products.push(product);
+
+      // 如果没有数据提前退出
+      if (!product.skuCode) {
+        break;
+      }
+    }
+    return products;
   }
 }

@@ -15,6 +15,9 @@ export class ProductEntity {
   @Column({ name: 'name' })
   name: string;
 
+  @Column({ name: 'desc' })
+  desc: string;
+
   @Column({ name: 'status' })
   status: ProductStatus;
 
