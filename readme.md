@@ -24,8 +24,9 @@
 ## TODO
 
 - [X] 权限控制
-- [ ] 登录注册
-- [ ] 产品管理
+- [X] 登录注册
+- [X] 产品管理
+- [ ] 实时汇率计算 https://api.currencyapi.com/v3/latest?apikey=
 - [ ] 客户管理
 - [ ] 报价管理
 
