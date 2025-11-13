@@ -1,6 +1,14 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { PricingType, ProductStatus } from '@/constants';
 
+import { ImageEntity } from './image.entity';
+import { ProductEntity } from './product.entity';
 import { Transform } from 'class-transformer';
 import moment from 'moment';
 
@@ -38,6 +46,16 @@ export class SKUEntity {
 
   @Column({ name: 'status' })
   status: ProductStatus;
+
+  // 多对一关系：SKU → Product
+  @ManyToOne(() => ProductEntity, (product) => product.skus)
+  @JoinColumn({ name: 'product_id' })
+  product: ProductEntity;
+
+  // 多对一关系：SKU → Image
+  @ManyToOne(() => ImageEntity, (image) => image.skus)
+  @JoinColumn({ name: 'image_id' })
+  image: ImageEntity;
 
   @Transform(({ value }) => moment(value).format('YYYY-MM-DD HH:mm:ss'), {
     toPlainOnly: true,

@@ -46,7 +46,4 @@ export class ProductController {
     }
     return this.productService.leadinProduct(req.user, file.buffer);
   }
-  // signIn(@Body() signInDto: AuthLoginDto) {
-  //   return this.productService.signIn();
-  // }
 }

@@ -16,13 +16,57 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `customer`
+--
+
+DROP TABLE IF EXISTS `customer`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `customer` (
+  `id` char(36) NOT NULL,
+  `tenant_id` char(36) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `phone` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `remark` text,
+  `create_time` datetime NOT NULL DEFAULT (now()),
+  `update_time` datetime NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tenant` (`tenant_id`),
+  KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `customer`
 --
 
 LOCK TABLES `customer` WRITE;
 /*!40000 ALTER TABLE `customer` DISABLE KEYS */;
+INSERT INTO `customer` VALUES ('d4027712-4a88-4770-96cc-4eae2b14fe51','e641e020-06b8-44c0-a922-5846e584173f','Sams club',NULL,NULL,NULL,'2025-11-13 01:58:37','2025-11-13 01:58:37');
 /*!40000 ALTER TABLE `customer` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `product`
+--
+
+DROP TABLE IF EXISTS `product`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `product` (
+  `id` char(36) NOT NULL,
+  `tenant_id` char(36) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `status` tinyint NOT NULL DEFAULT '1',
+  `create_time` datetime DEFAULT (now()),
+  `update_time` datetime DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tenant` (`tenant_id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `product`
@@ -35,6 +79,31 @@ INSERT INTO `product` VALUES ('1d78a9cd-84cd-4118-a02c-b77340e00bdb','e641e020-0
 UNLOCK TABLES;
 
 --
+-- Table structure for table `quotation`
+--
+
+DROP TABLE IF EXISTS `quotation`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `quotation` (
+  `id` char(36) NOT NULL,
+  `tenant_id` char(36) NOT NULL,
+  `user_id` char(36) NOT NULL,
+  `customer_id` char(36) NOT NULL,
+  `items` json NOT NULL COMMENT '产品明细',
+  `total_amount` decimal(12,2) NOT NULL,
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '1有效 2作废',
+  `create_time` datetime NOT NULL DEFAULT (now()),
+  `update_time` datetime NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tenant` (`tenant_id`),
+  KEY `idx_user` (`user_id`),
+  KEY `customer_id` (`customer_id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `quotation`
 --
 
@@ -42,6 +111,34 @@ LOCK TABLES `quotation` WRITE;
 /*!40000 ALTER TABLE `quotation` DISABLE KEYS */;
 /*!40000 ALTER TABLE `quotation` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `sku`
+--
+
+DROP TABLE IF EXISTS `sku`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `sku` (
+  `id` char(36) NOT NULL,
+  `tenant_id` char(36) NOT NULL,
+  `product_id` char(36) NOT NULL,
+  `sku_code` varchar(50) NOT NULL,
+  `pricing_type` tinyint NOT NULL COMMENT '计价方式',
+  `attribute_value` decimal(10,2) DEFAULT NULL COMMENT '每件产品的属性值',
+  `desc` varchar(255) NOT NULL,
+  `image_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `unit_price` decimal(10,2) NOT NULL,
+  `unit` varchar(10) NOT NULL,
+  `status` tinyint NOT NULL DEFAULT '1',
+  `create_time` datetime DEFAULT (now()),
+  `update_time` datetime DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_tenant` (`tenant_id`),
+  KEY `idx_product` (`product_id`),
+  KEY `idx_sku_code` (`sku_code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `sku`
@@ -54,6 +151,22 @@ INSERT INTO `sku` VALUES ('0cc39db6-806b-4c71-aa1c-b6ec5ecea964','e641e020-06b8-
 UNLOCK TABLES;
 
 --
+-- Table structure for table `tenant`
+--
+
+DROP TABLE IF EXISTS `tenant`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `tenant` (
+  `id` char(36) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `create_time` datetime NOT NULL DEFAULT (now()),
+  `update_time` datetime NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `tenant`
 --
 
@@ -64,6 +177,31 @@ INSERT INTO `tenant` VALUES ('e641e020-06b8-44c0-a922-5846e584173f','企查查',
 UNLOCK TABLES;
 
 --
+-- Table structure for table `user`
+--
+
+DROP TABLE IF EXISTS `user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user` (
+  `id` char(36) NOT NULL,
+  `tenant_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `username` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `salt` varchar(255) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `role` enum('boss','staff','platform_admin') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT 'staff',
+  `status` tinyint NOT NULL DEFAULT '1',
+  `create_time` datetime NOT NULL DEFAULT (now()),
+  `update_time` datetime NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `unique_tenant_user` (`username`) USING BTREE,
+  KEY `idx_tenant` (`tenant_id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `user`
 --
 
@@ -72,6 +210,26 @@ LOCK TABLES `user` WRITE;
 INSERT INTO `user` VALUES ('0d3d12c7-385c-4b2c-b1b5-8514c12359e1','e641e020-06b8-44c0-a922-5846e584173f','15298377308@163.com','e7213e9ff4e19f454804546fe789b154339c02fc8bf278dd9eafd43ea4eb9a7d218316979d1195676763e08164ff056a697cbd8e7c8438b5245b9f72797fac68','329a93f3-70cf-4434-9f99-ebf9517b3fdb',NULL,'boss',1,'2025-11-10 11:47:09','2025-11-10 11:47:09'),('8ef20106-bde3-11f0-a6ab-0242ac120004',NULL,'1543082564@qq.com','2d99878477569a05b847b078ffac750845e2e9ea676fb7c5ea4f7f30ed46f849f2a84cae0a043cabfefdbf7d11f687034114d02677ade947fe5706ff9b172471','xxxx',NULL,'platform_admin',1,'2025-11-10 03:15:50','2025-11-10 07:02:48');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `image`
+--
+
+DROP TABLE IF EXISTS `image`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `image` (
+  `id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `tenant_id` char(36) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `base64_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  `hash_data` varchar(255) NOT NULL DEFAULT '',
+  `create_time` datetime DEFAULT (now()),
+  `update_time` datetime DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  KEY `idx_tenant` (`tenant_id`) USING BTREE,
+  KEY `hash_data` (`hash_data`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci ROW_FORMAT=DYNAMIC;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `image`
@@ -92,4 +250,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-12 19:39:00
+-- Dump completed on 2025-11-13 21:04:41

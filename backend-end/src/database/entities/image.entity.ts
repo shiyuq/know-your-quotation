@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
+import { SKUEntity } from './sku.entity';
 import { Transform } from 'class-transformer';
 import moment from 'moment';
 
@@ -16,6 +17,10 @@ export class ImageEntity {
 
   @Column({ name: 'hash_data' })
   hashData: string;
+
+  // 一对多：一个 Image 可以被多个 SKU 使用
+  @OneToMany(() => SKUEntity, (sku) => sku.imageId)
+  skus: SKUEntity[];
 
   @Transform(({ value }) => moment(value).format('YYYY-MM-DD HH:mm:ss'), {
     toPlainOnly: true,

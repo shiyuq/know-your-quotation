@@ -47,7 +47,16 @@ export class AuthGuard implements CanActivate {
     const user: { role: GlobalRole } = request.user;
 
     // 如果是平台管理员，直接放行
-    if (user.role === GlobalRole.PLATFORM_ADMIN) return true;
+    if (user.role === GlobalRole.PLATFORM_ADMIN) {
+      if (request.url === '/product/leadin') {
+        return true;
+      }
+      if (!request.body?.tenantId) {
+        return false;
+      }
+      request.user.tenantId = request.body.tenantId;
+      return true;
+    }
 
     // 如果是普通用户，检查权限
     const permission = this.reflector.get(Permisson, context.getHandler());

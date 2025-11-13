@@ -11,6 +11,7 @@ import {
   ArticleModule,
   AuthModule,
   ProductModule,
+  QuotationModule,
   TodoModule,
   UsersModule,
   UtilModule,
@@ -91,6 +92,7 @@ import { jwtConstants } from '@/constants';
     ArticleModule,
     UtilModule,
     ProductModule,
+    QuotationModule,
   ],
   controllers: [AppController],
   providers: [
