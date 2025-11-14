@@ -3,7 +3,9 @@ import _ from 'lodash';
 import ExcelJS from 'exceljs';
 import child_process from 'child_process';
 import path from 'path';
+import sizeOf from 'image-size';
 
+import { PricingType } from '@/constants';
 import { BusinessErrorHelper } from '@/common';
 import { MakeQuotationDto } from '../dto/make-quotation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -39,6 +41,8 @@ export class QuotationService {
     ]);
     const productMap = _.keyBy(productList, 'id');
     const imageMap = _.keyBy(imageList, 'id');
+    const skuMap = _.groupBy(skus, 'productId');
+    const countMap = _.keyBy(products, 'skuCode');
 
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet('quotation');
@@ -78,63 +82,98 @@ export class QuotationService {
     });
 
     let currentRow = 2;
-    // for (const product of skus) {
-    //   const skuCount = product.skus.length;
-    //   const rowHeight = skuCount === 1 ? 70 : 35;
+    for (const productId of Object.keys(skuMap)) {
+      // 产品信息、sku信息
+      const productInfo = productMap[productId];
+      const skus = skuMap[productId];
+      const imageId = skus[0].imageId;
 
-    //   const pictureStartRow = currentRow;
-    //   const pictureEndRow = currentRow + skuCount - 1;
+      const rowHeight = skus.length === 1 ? 66 : 33;
+      const pictureStartRow = currentRow;
+      const pictureEndRow = currentRow + skus.length - 1;
 
-    //   // 插入 SKU 行
-    //   for (const sku of product.skus) {
-    //     const row = sheet.getRow(currentRow);
-    //     row.height = rowHeight;
+      for (const sku of skus) {
+        const row = sheet.getRow(currentRow);
+        row.height = rowHeight;
+        row.getCell('sku').value = sku.skuCode;
+        row.getCell('desc').value =
+          sku.pricingType === PricingType.PriceByAttribute
+            ? sku.desc
+            : productInfo.desc;
+        row.getCell('size').value =
+          sku.pricingType === PricingType.PriceByAttribute
+            ? sku.attributeValue
+            : productInfo.desc;
+        row.getCell('qty').value = countMap[sku.skuCode].quantity;
+        row.getCell('unitPrice').value = sku.unitPrice;
+        row.getCell('totalPrice').value = {
+          formula:
+            sku.pricingType === PricingType.PriceByAttribute
+              ? `E${currentRow}*F${currentRow}*G${currentRow}`
+              : `F${currentRow}*G${currentRow}`,
+        };
 
-    //     row.getCell('sku').value = sku.skuCode;
-    //     row.getCell('size').value = sku.size;
-    //     row.getCell('qty').value = sku.qty;
-    //     row.getCell('unitPrice').value = sku.unitPrice;
-    //     row.getCell('totalPrice').value = {
-    //       formula: `E${currentRow}*F${currentRow}`,
-    //     };
+        // 单元格居中
+        row.alignment = { vertical: 'middle', horizontal: 'center' };
+        currentRow++;
+      }
 
-    //     // 单元格居中
-    //     row.alignment = { vertical: 'middle', horizontal: 'center' };
+      // 合并一些需要合并的单元格
+      if (skus.length > 1) {
+        // 合并product
+        sheet.mergeCells(`B${pictureStartRow}:B${pictureEndRow}`);
+        // 合并image
+        sheet.mergeCells(`A${pictureStartRow}:A${pictureEndRow}`);
+      }
 
-    //     currentRow++;
-    //   }
-    //   // 合并 PRODUCT 单元格
-    //   if (skuCount > 1) {
-    //     sheet.mergeCells(`B${pictureStartRow}:B${pictureEndRow}`);
-    //     sheet.mergeCells(`A${pictureStartRow}:A${pictureEndRow}`);
-    //   }
+      // 写入 PRODUCT 名称
+      sheet.getCell(`B${pictureStartRow}`).value = productInfo.name;
+      sheet.getCell(`B${pictureStartRow}`).alignment = {
+        vertical: 'middle',
+        horizontal: 'center',
+      };
 
-    //   // 写入 PRODUCT 名称
-    //   sheet.getCell(`B${pictureStartRow}`).value = product.productName;
-    //   sheet.getCell(`B${pictureStartRow}`).alignment = {
-    //     vertical: 'middle',
-    //     horizontal: 'center',
-    //   };
-
-    //   // 插入图片
-    //   if (product.imageBase64) {
-    //     const imgId = workbook.addImage({
-    //       base64: product.imageBase64,
-    //       extension: 'png',
-    //     });
-
-    //     sheet.addImage(imgId, {
-    //       tl: { col: 0, row: pictureStartRow - 1 },
-    //       br: { col: 1, row: pictureEndRow - 1 },
-    //       editAs: 'oneCell',
-    //     });
-    //   }
-    // }
+      // 计算图片的大小
+      const { width, height } = this.calculateImageSize(
+        imageMap[imageId].base64Data,
+        rowHeight * skus.length,
+      );
+      sheet.addImage(
+        workbook.addImage({
+          base64: imageMap[imageId].base64Data,
+          extension: 'png',
+        }),
+        {
+          tl: {
+            col: 0,
+            row: pictureStartRow - 1,
+            nativeColOff: 10,
+            nativeRowOff: 10,
+          },
+          ext: { width, height },
+          editAs: 'oneCell',
+        },
+      );
+    }
 
     await workbook.xlsx.writeFile('src/temp/quote.xlsx');
 
     child_process.exec(`start "" "${path.resolve('src/temp/quote.xlsx')}"`);
 
-    return productMap;
+    return skuMap;
+  }
+
+  private calculateImageSize(base64Data: string, rowHeight: number) {
+    const imageBuffer = Buffer.from(base64Data, 'base64');
+    const { width: origW, height: origH } = sizeOf(imageBuffer);
+
+    const totalRowHeight = rowHeight - 10;
+
+    // 按比例缩放图片
+    const scale = totalRowHeight / origH;
+    const scaledHeight = totalRowHeight;
+    const scaledWidth = origW * scale;
+
+    return { width: scaledWidth, height: scaledHeight };
   }
 }
