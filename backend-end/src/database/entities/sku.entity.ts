@@ -29,7 +29,7 @@ export class SKUEntity {
   @Column({ name: 'pricing_type' })
   pricingType: PricingType;
 
-  @Column({ name: 'attribute_value', nullable: true })
+  @Column('decimal', { name: 'attribute_value', nullable: true })
   attributeValue: number;
 
   @Column({ name: 'desc' })
@@ -38,11 +38,23 @@ export class SKUEntity {
   @Column({ name: 'image_id' })
   imageId: string;
 
-  @Column({ name: 'unit_price' })
+  @Column('decimal', { name: 'unit_price', precision: 10, scale: 2 })
   unitPrice: number;
 
   @Column({ name: 'unit' })
   unit: string;
+
+  @Column('decimal', { name: 'weight', precision: 10, scale: 2 })
+  weight: number;
+
+  @Column('decimal', { name: 'length', precision: 10, scale: 2 })
+  length: number;
+
+  @Column('decimal', { name: 'width', precision: 10, scale: 2 })
+  width: number;
+
+  @Column('decimal', { name: 'height', precision: 10, scale: 2 })
+  height: number;
 
   @Column({ name: 'status' })
   status: ProductStatus;

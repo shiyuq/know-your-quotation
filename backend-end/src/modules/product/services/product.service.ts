@@ -25,6 +25,10 @@ interface LeadinProductRow {
   desc: string;
   unit: string;
   unitPrice: number;
+  weight: number;
+  length: number;
+  width: number;
+  height: number;
   status?: ProductImportStatus;
 }
 
@@ -126,6 +130,10 @@ export class ProductService {
       unit,
       unitPrice,
       status,
+      weight,
+      length,
+      width,
+      height,
     }: LeadinProductRow,
     repo = this.skuRepository,
   ): Promise<SKUEntity> {
@@ -138,6 +146,10 @@ export class ProductService {
         desc,
         unit,
         unitPrice,
+        weight,
+        length,
+        width,
+        height,
         pricingType:
           pricingType === PricingImportType.PriceByAttributeString
             ? PricingType.PriceByAttribute
@@ -163,6 +175,10 @@ export class ProductService {
       desc,
       unit,
       unitPrice,
+      weight,
+      length,
+      width,
+      height,
       pricingType:
         pricingType === PricingImportType.PriceByAttributeString
           ? PricingType.PriceByAttribute
@@ -226,7 +242,7 @@ export class ProductService {
     return image.id;
   }
 
-  private resolveProductFromExcel(user: any, sheet: ExcelJS.Worksheet) {
+  private resolveProductFromExcel(user: UserInfo, sheet: ExcelJS.Worksheet) {
     // 表头数据映射
     const headerMap: Record<string, number> = {};
     sheet.getRow(1).eachCell((cell, col) => {
@@ -236,6 +252,10 @@ export class ProductService {
     const products = [];
     for (let rowIndex = 2; rowIndex <= sheet.rowCount; rowIndex++) {
       const row = sheet.getRow(rowIndex);
+
+      const [length, width, height] = (
+        row.getCell(headerMap['产品尺寸（m³）']).value as string
+      ).split('*');
 
       const product = {
         name: row.getCell(headerMap['产品名称']).value as string,
@@ -247,7 +267,11 @@ export class ProductService {
         desc: row.getCell(headerMap['型号描述']).value as string,
         unit: row.getCell(headerMap['产品单位']).value as string,
         unitPrice: row.getCell(headerMap['产品价格']).value as number,
+        weight: row.getCell(headerMap['产品重量（kg）']).value as number,
         status: row.getCell(headerMap['产品状态']).value as ProductImportStatus,
+        length: Number(length),
+        width: Number(width),
+        height: Number(height),
         tenantId: user.tenantId,
         productId: '',
         imageId: '',

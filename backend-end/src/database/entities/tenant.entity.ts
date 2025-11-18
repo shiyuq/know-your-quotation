@@ -13,6 +13,21 @@ export class TenantEntity {
   })
   name: string;
 
+  @Column({
+    name: 'tel',
+  })
+  tel: string;
+
+  @Column({
+    name: 'fax',
+  })
+  fax: string;
+
+  @Column({
+    name: 'address',
+  })
+  address: string;
+
   @Transform(({ value }) => moment(value).format('YYYY-MM-DD HH:mm:ss'), {
     toPlainOnly: true,
   })
