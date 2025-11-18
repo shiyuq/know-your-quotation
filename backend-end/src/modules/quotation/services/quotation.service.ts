@@ -181,6 +181,9 @@ export class QuotationService {
       );
     }
 
+    // 后面儿放开
+    // this.setSheetStyle(sheet);
+
     await workbook.xlsx.writeFile('src/temp/quote.xlsx');
 
     child_process.exec(`start "" "${path.resolve('src/temp/quote.xlsx')}"`);
@@ -424,5 +427,21 @@ export class QuotationService {
     });
 
     return currentRow + 9;
+  }
+
+  private setSheetStyle(sheet: ExcelJS.Worksheet) {
+    sheet.pageSetup = {
+      orientation: 'portrait',
+      scale: 70,
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0,
+    };
+    sheet.views = [
+      {
+        style: 'pageBreakPreview', // 默认分页预览模式
+        zoomScale: 70,
+      },
+    ];
   }
 }
