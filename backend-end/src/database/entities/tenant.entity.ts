@@ -28,6 +28,31 @@ export class TenantEntity {
   })
   address: string;
 
+  @Column({
+    name: 'short_address',
+  })
+  shortAddress: string;
+
+  @Column({
+    name: 'bank',
+  })
+  bank: string;
+
+  @Column({
+    name: 'bank_address',
+  })
+  bankAddress: string;
+
+  @Column({
+    name: 'swift_code',
+  })
+  swiftCode: string;
+
+  @Column({
+    name: 'account_no',
+  })
+  accountNo: string;
+
   @Transform(({ value }) => moment(value).format('YYYY-MM-DD HH:mm:ss'), {
     toPlainOnly: true,
   })

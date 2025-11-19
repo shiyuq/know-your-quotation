@@ -10,7 +10,7 @@ import {
 
 import { Type } from 'class-transformer';
 
-class ProductItemDto {
+export class ProductItemDto {
   @IsString()
   skuCode: string;
 

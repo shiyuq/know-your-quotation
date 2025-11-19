@@ -1,3 +1,4 @@
+import ExcelJS from 'exceljs';
 import FlakeId from 'flake-idgen';
 import { Injectable } from '@nestjs/common';
 import crypto from 'crypto';
@@ -42,5 +43,21 @@ export class UtilService {
     const bigIntId = BigInt('0x' + id.toString('hex')); // Buffer → BigInt
     const base36Id = bigIntId.toString(36).toUpperCase();
     return base36Id;
+  }
+
+  sumColumnRange(
+    sheet: ExcelJS.Worksheet,
+    columnKey: string,
+    startRow: number,
+    endRow: number,
+  ) {
+    let total = 0;
+    for (let i = startRow; i <= endRow; i++) {
+      const row = sheet.getRow(i);
+      const cell = row.getCell(columnKey);
+      const value = Number(cell.value) || 0;
+      total += value;
+    }
+    return total;
   }
 }
