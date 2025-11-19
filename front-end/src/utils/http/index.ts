@@ -80,24 +80,26 @@ class PureHttp {
                 const now = new Date().getTime();
                 const expired = parseInt(data.expires) - now <= 0;
                 if (expired) {
-                  if (!PureHttp.isRefreshing) {
-                    PureHttp.isRefreshing = true;
-                    // token过期刷新
-                    useUserStoreHook()
-                      .handRefreshToken({ refreshToken: data.refreshToken })
-                      .then(res => {
-                        const token = res.data.accessToken;
-                        config.headers["Authorization"] = formatToken(token);
-                        PureHttp.requests.forEach(cb => cb(token));
-                        PureHttp.requests = [];
-                      })
-                      .finally(() => {
-                        PureHttp.isRefreshing = false;
-                      });
-                  }
+                  // if (!PureHttp.isRefreshing) {
+                  //   PureHttp.isRefreshing = true;
+                  //   // token过期刷新
+                  //   useUserStoreHook()
+                  //     .handRefreshToken({ refreshToken: data.refreshToken })
+                  //     .then(res => {
+                  //       const token = res.data.accessToken;
+                  //       config.headers["Authorization"] = formatToken(token);
+                  //       PureHttp.requests.forEach(cb => cb(token));
+                  //       PureHttp.requests = [];
+                  //     })
+                  //     .finally(() => {
+                  //       PureHttp.isRefreshing = false;
+                  //     });
+                  // }
+                  // logout();
+                  useUserStoreHook().logOut();
                   resolve(PureHttp.retryOriginalRequest(config));
                 } else {
-                  config.headers["Authorization"] = formatToken(
+                  config.headers["authorization"] = formatToken(
                     data.accessToken
                   );
                   resolve(config);

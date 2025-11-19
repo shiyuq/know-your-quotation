@@ -13,4 +13,8 @@ export class UserErrorHelper {
       '密码输入错误',
     );
   }
+
+  static tenantNotExist(): never {
+    throw new BusinessException(ErrorCodeEnum.TENANT_NOT_EXIST, '租户不存在');
+  }
 }

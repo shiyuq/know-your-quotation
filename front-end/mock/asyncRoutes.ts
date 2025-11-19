@@ -19,14 +19,14 @@ const permissionRouter = {
       name: "PermissionPage",
       meta: {
         title: "页面权限",
-        roles: ["admin", "common"]
+        roles: ["staff"]
       }
     },
     {
       path: "/permission/button",
       meta: {
         title: "按钮权限",
-        roles: ["admin", "common"]
+        roles: ["boss", "staff"]
       },
       children: [
         {
@@ -61,7 +61,7 @@ export default defineFakeRoute([
     method: "get",
     response: () => {
       return {
-        success: true,
+        status: 200,
         data: [permissionRouter]
       };
     }

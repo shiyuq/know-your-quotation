@@ -17,10 +17,7 @@ export default defineFakeRoute([
           }
         };
       } else {
-        return {
-          success: false,
-          data: {}
-        };
+        return {};
       }
     }
   }

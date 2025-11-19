@@ -1,6 +1,8 @@
+import { isIncludeAllChildren, isString, storageLocal } from "@pureadmin/utils";
+
 import Cookies from "js-cookie";
+import dayjs from "dayjs";
 import { useUserStoreHook } from "@/store/modules/user";
-import { storageLocal, isString, isIncludeAllChildren } from "@pureadmin/utils";
 
 export interface DataInfo<T> {
   /** token */
@@ -8,15 +10,18 @@ export interface DataInfo<T> {
   /** `accessToken`的过期时间（时间戳） */
   expires: T;
   /** 用于调用刷新accessToken的接口时所需的token */
-  refreshToken: string;
+  refreshToken?: string;
   /** 头像 */
   avatar?: string;
   /** 用户名 */
   username?: string;
   /** 昵称 */
   nickname?: string;
+  /** 租户id */
+  tenantId?: string;
+  compName?: string;
   /** 当前登录用户的角色 */
-  roles?: Array<string>;
+  roles: Array<string>;
   /** 当前登录用户的按钮级别权限 */
   permissions?: Array<string>;
 }
@@ -45,12 +50,12 @@ export function getToken(): DataInfo<number> {
  * 将`accessToken`、`expires`、`refreshToken`这三条信息放在key值为authorized-token的cookie里（过期自动销毁）
  * 将`avatar`、`username`、`nickname`、`roles`、`permissions`、`refreshToken`、`expires`这七条信息放在key值为`user-info`的localStorage里（利用`multipleTabsKey`当浏览器完全关闭后自动销毁）
  */
-export function setToken(data: DataInfo<Date>) {
+export function setToken(data) {
   let expires = 0;
-  const { accessToken, refreshToken } = data;
+  const { accessToken } = data;
   const { isRemembered, loginDay } = useUserStoreHook();
-  expires = new Date(data.expires).getTime(); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
-  const cookieString = JSON.stringify({ accessToken, expires, refreshToken });
+  expires = Number(dayjs().add(1, "d")); // 如果后端直接设置时间戳，将此处代码改为expires = data.expires，然后把上面的DataInfo<Date>改成DataInfo<number>即可
+  const cookieString = JSON.stringify({ accessToken, expires });
 
   expires > 0
     ? Cookies.set(TokenKey, cookieString, {
@@ -68,16 +73,28 @@ export function setToken(data: DataInfo<Date>) {
       : {}
   );
 
-  function setUserKey({ avatar, username, nickname, roles, permissions }) {
+  function setUserKey({
+    avatar,
+    username,
+    tenantId,
+    nickname,
+    compName,
+    roles,
+    permissions
+  }) {
     useUserStoreHook().SET_AVATAR(avatar);
     useUserStoreHook().SET_USERNAME(username);
     useUserStoreHook().SET_NICKNAME(nickname);
     useUserStoreHook().SET_ROLES(roles);
     useUserStoreHook().SET_PERMS(permissions);
+    useUserStoreHook().SET_TENANTID(tenantId);
+    useUserStoreHook().SET_COMPNAME(compName);
     storageLocal().setItem(userKey, {
-      refreshToken,
+      // refreshToken,
       expires,
       avatar,
+      tenantId,
+      compName,
       username,
       nickname,
       roles,
@@ -85,14 +102,16 @@ export function setToken(data: DataInfo<Date>) {
     });
   }
 
-  if (data.username && data.roles) {
-    const { username, roles } = data;
+  if (data.username && data.role) {
+    const { username, role } = data;
     setUserKey({
       avatar: data?.avatar ?? "",
       username,
-      nickname: data?.nickname ?? "",
-      roles,
-      permissions: data?.permissions ?? []
+      tenantId: data?.tenantId ?? "",
+      nickname: data?.username ?? "",
+      compName: data?.tenantName ?? "",
+      roles: [role],
+      permissions: data?.permissions ?? ["*:*:*"]
     });
   } else {
     const avatar =
@@ -101,6 +120,10 @@ export function setToken(data: DataInfo<Date>) {
       storageLocal().getItem<DataInfo<number>>(userKey)?.username ?? "";
     const nickname =
       storageLocal().getItem<DataInfo<number>>(userKey)?.nickname ?? "";
+    const tenantId =
+      storageLocal().getItem<DataInfo<number>>(userKey)?.tenantId ?? "";
+    const compName =
+      storageLocal().getItem<DataInfo<number>>(userKey)?.tenantName ?? "";
     const roles =
       storageLocal().getItem<DataInfo<number>>(userKey)?.roles ?? [];
     const permissions =
@@ -108,6 +131,8 @@ export function setToken(data: DataInfo<Date>) {
     setUserKey({
       avatar,
       username,
+      tenantId,
+      compName,
       nickname,
       roles,
       permissions
@@ -124,7 +149,7 @@ export function removeToken() {
 
 /** 格式化token（jwt格式） */
 export const formatToken = (token: string): string => {
-  return "Bearer " + token;
+  return token;
 };
 
 /** 是否有按钮级别的权限（根据登录接口返回的`permissions`字段进行判断）*/

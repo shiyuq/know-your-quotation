@@ -32,7 +32,9 @@ export const useUserStore = defineStore("pure-user", {
     // 是否勾选了登录页的免登录
     isRemembered: false,
     // 登录页的免登录存储几天，默认7天
-    loginDay: 7
+    loginDay: 7,
+    tenantId: storageLocal().getItem<DataInfo<number>>(userKey)?.tenantId ?? "",
+    compName: storageLocal().getItem<DataInfo<number>>(userKey)?.compName ?? ""
   }),
   actions: {
     /** 存储头像 */
@@ -55,6 +57,13 @@ export const useUserStore = defineStore("pure-user", {
     SET_PERMS(permissions: Array<string>) {
       this.permissions = permissions;
     },
+    /** 存储tenantId */
+    SET_TENANTID(tenantId: string) {
+      this.tenantId = tenantId;
+    },
+    SET_COMPNAME(compName: string) {
+      this.compName = compName;
+    },
     /** 存储是否勾选了登录页的免登录 */
     SET_ISREMEMBERED(bool: boolean) {
       this.isRemembered = bool;
@@ -69,7 +78,7 @@ export const useUserStore = defineStore("pure-user", {
         getLogin(data)
           .then(data => {
             if (data?.accessToken) {
-              // setToken({});
+              setToken(data);
             }
             resolve(data);
           })

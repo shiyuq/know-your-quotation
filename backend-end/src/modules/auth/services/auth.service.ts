@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import _ from 'lodash';
 import { BusinessErrorHelper } from '@/common';
 import { GlobalRole } from '@/constants';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -25,10 +25,7 @@ export class AuthService {
     private readonly utilService: UtilService,
   ) {}
 
-  async signIn(
-    username: string,
-    pass: string,
-  ): Promise<{ accessToken: string; role: string }> {
+  async signIn(username: string, pass: string) {
     const user = await this.userRepository.findOne({
       where: { username },
     });
@@ -37,6 +34,12 @@ export class AuthService {
     }
     if (!this.utilService.checkIsValidPwd(pass, user.salt, user.password)) {
       return BusinessErrorHelper.User.userPwdError();
+    }
+    const tenantInfo = await this.tenantRepository.findOneBy({
+      id: user.tenantId,
+    });
+    if (_.isEmpty(tenantInfo)) {
+      return BusinessErrorHelper.User.tenantNotExist();
     }
     const payload = {
       sub: user.id,
@@ -48,6 +51,9 @@ export class AuthService {
     const token = await this.jwtService.signAsync(payload);
     return {
       accessToken: `Bearer ${token}`,
+      username: user.username,
+      tenantId: '',
+      tenantName: tenantInfo.name,
       role: user.role,
     };
   }
