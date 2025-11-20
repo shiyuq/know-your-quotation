@@ -164,9 +164,14 @@ DROP TABLE IF EXISTS `tenant`;
 CREATE TABLE `tenant` (
   `id` char(36) NOT NULL,
   `name` varchar(100) NOT NULL,
-  `tel` varchar(100) NOT NULL,
-  `fax` varchar(100) NOT NULL,
-  `address` varchar(255) NOT NULL,
+  `tel` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `fax` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `short_address` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
+  `bank` varchar(255) DEFAULT NULL,
+  `bank_address` varchar(255) DEFAULT NULL,
+  `swift_code` varchar(255) DEFAULT NULL,
+  `account_no` varchar(255) DEFAULT NULL,
   `create_time` datetime NOT NULL DEFAULT (now()),
   `update_time` datetime NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -179,7 +184,7 @@ CREATE TABLE `tenant` (
 
 LOCK TABLES `tenant` WRITE;
 /*!40000 ALTER TABLE `tenant` DISABLE KEYS */;
-INSERT INTO `tenant` VALUES ('e641e020-06b8-44c0-a922-5846e584173f','Nantong OK Sporting Co.,ltd','0086-0513-81067596','0086-0513-81067595','1114, A3 Office Building, Wanda Plaza, No. 8 Shennan Road, Gangzha District, Nantong City','2025-11-10 11:47:09','2025-11-18 07:02:46');
+INSERT INTO `tenant` VALUES ('e641e020-06b8-44c0-a922-5846e584173f','Nantong OK Sporting Co.,ltd','0086-0513-81067596','0086-0513-81067595','1114, A3 Office Building, Wanda Plaza, No. 8 Shennan Road, Gangzha District, Nantong City','388 Yonghe road,Nantong,jiangsu,China','BANK OF CHINA,NANTONG CITY,CHONGCHUAN SUB-BRANCH','NO.100 YUE LONG ROAD NANTONG','BKCHCNBJ95G','513165040944','2025-11-10 11:47:09','2025-11-19 06:39:38');
 /*!40000 ALTER TABLE `tenant` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -257,4 +262,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-18 19:40:28
+-- Dump completed on 2025-11-20 21:40:22
