@@ -19,7 +19,7 @@ const permissionRouter = {
       name: "PermissionPage",
       meta: {
         title: "页面权限",
-        roles: ["staff"]
+        roles: ["boss"]
       }
     },
     {
@@ -55,6 +55,25 @@ const permissionRouter = {
   ]
 };
 
+const autoImportRouter = {
+  path: "/autoimport",
+  meta: {
+    title: "自动导入",
+    icon: "ep:lollipop",
+    rank: 11
+  },
+  children: [
+    {
+      path: "/autoimport/index",
+      name: "AutoImport",
+      meta: {
+        title: "自动导入",
+        roles: ["boss"]
+      }
+    }
+  ]
+};
+
 export default defineFakeRoute([
   {
     url: "/get-async-routes",
@@ -62,7 +81,7 @@ export default defineFakeRoute([
     response: () => {
       return {
         status: 200,
-        data: [permissionRouter]
+        data: [permissionRouter, autoImportRouter]
       };
     }
   }
