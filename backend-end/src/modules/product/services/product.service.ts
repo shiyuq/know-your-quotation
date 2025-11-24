@@ -12,6 +12,7 @@ import { Repository, DataSource } from 'typeorm';
 import { ProductEntity, ImageEntity, SKUEntity } from '@/database/entities';
 import { UtilService } from '@/modules/global/util/services/util.service';
 import { BusinessErrorHelper } from '@/common';
+import { ListProductDto } from '../dto/list-product.dto';
 
 interface LeadinProductRow {
   name: string;
@@ -49,7 +50,7 @@ export class ProductService {
     private readonly utilService: UtilService,
   ) {}
 
-  async leadinProduct(user: any, buffer: any) {
+  async leadinProduct(user: UserInfo, buffer: any) {
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(buffer);
     const sheet = workbook.worksheets[0];
@@ -118,6 +119,10 @@ export class ProductService {
     });
 
     return result;
+  }
+
+  async listProduct(user: UserInfo, dto: ListProductDto) {
+    return true;
   }
 
   private async saveSKU(

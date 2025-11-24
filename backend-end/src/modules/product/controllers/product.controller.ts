@@ -13,6 +13,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Permisson, BusinessErrorHelper } from '@/common';
 import { PermissonEnum, GlobalRole } from '@/constants';
 import { ProductService } from '../services/product.service';
+import { ListProductDto } from '../dto/list-product.dto';
 
 @Controller('product')
 export class ProductController {
@@ -45,5 +46,11 @@ export class ProductController {
       }
     }
     return this.productService.leadinProduct(req.user, file.buffer);
+  }
+
+  @Post('list')
+  @Permisson(PermissonEnum.listProduct)
+  listProduct(@Request() req: any, @Body() dto: ListProductDto) {
+    return this.productService.listProduct(req.user, dto);
   }
 }
