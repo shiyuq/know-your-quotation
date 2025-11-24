@@ -13,7 +13,7 @@ export enum PermissonEnum {
   authSignIn = 'auth:signIn',
   authRegisterTenant = 'auth:registerTenant',
   leadinProduct = 'leadin:product',
-  listProduct = 'list:product',
+  listProductSku = 'list:product:sku',
   makeQuotation = 'make:quotation',
 }
 
@@ -23,11 +23,11 @@ export const RolePermissions: Record<GlobalRole, string[]> = {
     PermissonEnum.authSignIn,
     PermissonEnum.leadinProduct,
     PermissonEnum.makeQuotation,
-    PermissonEnum.listProduct,
+    PermissonEnum.listProductSku,
   ],
   [GlobalRole.STAFF]: [
     PermissonEnum.authSignIn,
     PermissonEnum.makeQuotation,
-    PermissonEnum.listProduct,
+    PermissonEnum.listProductSku,
   ],
 };

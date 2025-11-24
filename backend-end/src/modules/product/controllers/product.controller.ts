@@ -49,8 +49,8 @@ export class ProductController {
   }
 
   @Post('list')
-  @Permisson(PermissonEnum.listProduct)
-  listProduct(@Request() req: any, @Body() dto: ListProductDto) {
-    return this.productService.listProduct(req.user, dto);
+  @Permisson(PermissonEnum.listProductSku)
+  listProductSku(@Request() req: any, @Body() dto: ListProductDto) {
+    return this.productService.listProductSku(req.user, dto);
   }
 }

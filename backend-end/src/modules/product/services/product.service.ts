@@ -121,7 +121,7 @@ export class ProductService {
     return result;
   }
 
-  async listProduct(user: UserInfo, dto: ListProductDto) {
+  async listProductSku(user: UserInfo, dto: ListProductDto) {
     return true;
   }
 
