@@ -1,15 +1,27 @@
 import dayjs from "dayjs";
 import { computed } from "vue";
 import editForm from "./form.vue";
+import uploadForm from "./upload-form.vue";
 import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
 import { ElMessageBox } from "element-plus";
 import { transformI18n } from "@/plugins/i18n";
 import { addDialog } from "@/components/ReDialog";
-import type { FormItemProps } from "./types";
+import type { FormItemProps, FileUploadProps } from "./types";
 import type { PaginationProps } from "@pureadmin/table";
-import { getKeyList, deviceDetection, useDark } from "@pureadmin/utils";
-import { getRoleList, getRoleMenu, getRoleMenuIds } from "@/api/autoImport";
+import {
+  getKeyList,
+  deviceDetection,
+  useDark,
+  createFormData
+} from "@pureadmin/utils";
+
+import {
+  getRoleList,
+  getRoleMenu,
+  getRoleMenuIds,
+  importProduct
+} from "@/api/autoImport";
 import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
 
 function usePublicHooks() {
@@ -56,6 +68,7 @@ export function useRole(treeRef: Ref) {
   });
   const curRow = ref();
   const formRef = ref();
+  const uploadFileRef = ref();
   const dataList = ref([]);
   const treeIds = ref([]);
   const treeData = ref([]);
@@ -218,7 +231,7 @@ export function useRole(treeRef: Ref) {
 
   function openDialog(title = "新增", row?: FormItemProps) {
     addDialog({
-      title: `${title}角色`,
+      title: title,
       props: {
         formInline: {
           name: row?.name ?? "",
@@ -229,7 +242,7 @@ export function useRole(treeRef: Ref) {
       width: "40%",
       draggable: true,
       fullscreen: deviceDetection(),
-      fullscreenIcon: true,
+      fullscreenIcon: false,
       closeOnClickModal: false,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
       beforeSure: (done, { options }) => {
@@ -253,6 +266,43 @@ export function useRole(treeRef: Ref) {
               // 实际开发先调用修改接口，再进行下面操作
               chores();
             }
+          }
+        });
+      }
+    });
+  }
+
+  function openFileUploadDialog(title = "导入产品") {
+    addDialog({
+      title: title,
+      props: {
+        formInline: {
+          file: null
+        }
+      },
+      width: "40%",
+      draggable: true,
+      fullscreen: deviceDetection(),
+      fullscreenIcon: false,
+      closeOnClickModal: false,
+      contentRenderer: () =>
+        h(uploadForm, { ref: uploadFileRef, formInline: null }),
+      beforeSure: (done, { options }) => {
+        const FormRef = uploadFileRef.value.getRef();
+        const curData = options.props.formInline as FileUploadProps;
+        function chores() {
+          message("导入成功", {
+            type: "success"
+          });
+          done(); // 关闭弹框
+          onSearch(); // 刷新表格数据
+        }
+        FormRef.validate(valid => {
+          if (valid) {
+            const formData = createFormData({
+              file: curData.file
+            });
+            importProduct(formData).then(() => chores());
           }
         });
       }
@@ -304,7 +354,7 @@ export function useRole(treeRef: Ref) {
 
   onMounted(async () => {
     onSearch();
-    const { data } = await getRoleMenu();
+    const data: any = await getRoleMenu();
     treeIds.value = getKeyList(data, "id");
     treeData.value = handleTree(data);
   });
@@ -340,6 +390,7 @@ export function useRole(treeRef: Ref) {
     onSearch,
     resetForm,
     openDialog,
+    openFileUploadDialog,
     handleMenu,
     handleSave,
     handleDelete,

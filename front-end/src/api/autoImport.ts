@@ -80,3 +80,14 @@ export const getRoleMenu = (data?: object) => {
 export const getRoleMenuIds = (data?: object) => {
   return http.request<Result>("post", "/role-menu-ids", { data });
 };
+
+export const importProduct = (data?: object) => {
+  return http.request<Result>(
+    "post",
+    "/api/product/leadin",
+    { data },
+    {
+      headers: { "Content-Type": "multipart/form-data" }
+    }
+  );
+};

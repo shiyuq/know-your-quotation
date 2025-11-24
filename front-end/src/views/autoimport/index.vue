@@ -66,6 +66,7 @@ const {
   onSearch,
   resetForm,
   openDialog,
+  openFileUploadDialog,
   handleMenu,
   handleSave,
   handleDelete,
@@ -147,7 +148,7 @@ onMounted(() => {
       <PureTableBar
         :class="[isShow && !deviceDetection() ? 'w-[60vw]!' : 'w-full']"
         style="transition: width 220ms cubic-bezier(0.4, 0, 0.2, 1)"
-        title="角色管理（仅演示，操作后不生效）"
+        title="产品管理"
         :columns="columns"
         @refresh="onSearch"
       >
@@ -155,9 +156,9 @@ onMounted(() => {
           <el-button
             type="primary"
             :icon="useRenderIcon(AddFill)"
-            @click="openDialog()"
+            @click="openFileUploadDialog('导入产品')"
           >
-            新增角色
+            导入产品
           </el-button>
         </template>
         <template v-slot="{ size, dynamicColumns }">

@@ -12,4 +12,9 @@ interface FormProps {
   formInline: FormItemProps;
 }
 
-export type { FormItemProps, FormProps };
+interface FileUploadProps {
+  /** 上传的文件 */
+  file: File;
+}
+
+export type { FormItemProps, FormProps, FileUploadProps };
