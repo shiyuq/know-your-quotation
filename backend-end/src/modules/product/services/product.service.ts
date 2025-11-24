@@ -82,18 +82,6 @@ export class ProductService {
       const imageRepo = manager.getRepository(ImageEntity);
       const skuRepo = manager.getRepository(SKUEntity);
 
-      const productIds = await Promise.all(
-        _.map(uniqProductList, async (product) =>
-          this.saveProduct(
-            {
-              tenantId: user.tenantId,
-              name: product.name,
-              desc: product.productDesc,
-            },
-            productRepo,
-          ),
-        ),
-      );
       const imageIds = await Promise.all(
         _.map(images, async (image) =>
           this.saveImage(
@@ -104,6 +92,20 @@ export class ProductService {
             imageRepo,
           ),
         ),
+      );
+
+      const productIds = await Promise.all(
+        _.map(uniqProductList, async (product, index) => {
+          return this.saveProduct(
+            {
+              tenantId: user.tenantId,
+              imageId: imageIds[index],
+              name: product.name,
+              desc: product.productDesc,
+            },
+            productRepo,
+          );
+        }),
       );
 
       for (const item of products) {
@@ -197,7 +199,12 @@ export class ProductService {
   }
 
   private async saveProduct(
-    { tenantId, name, desc }: { tenantId: string; name: string; desc: string },
+    {
+      tenantId,
+      imageId,
+      name,
+      desc,
+    }: { tenantId: string; imageId: string; name: string; desc: string },
     repo = this.productRepository,
   ): Promise<string> {
     // 2. 查数据库是否已有对应产品
@@ -205,6 +212,7 @@ export class ProductService {
       where: { tenantId, name, status: ProductStatus.Valid },
     });
     if (product) {
+      product.imageId = imageId;
       product.desc = desc;
       await repo.save(product);
       return product.id;
@@ -214,6 +222,7 @@ export class ProductService {
       tenantId,
       name,
       desc,
+      imageId,
     });
     await repo.save(product);
     return product.id;

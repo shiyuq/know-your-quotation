@@ -60,11 +60,13 @@ CREATE TABLE `product` (
   `name` varchar(100) NOT NULL,
   `desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   `status` tinyint NOT NULL DEFAULT '1',
+  `image_id` char(36) NOT NULL DEFAULT '1',
   `create_time` datetime DEFAULT (now()),
   `update_time` datetime DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_tenant` (`tenant_id`),
-  KEY `status` (`status`)
+  KEY `status` (`status`),
+  KEY `image_id` (`image_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -74,7 +76,7 @@ CREATE TABLE `product` (
 
 LOCK TABLES `product` WRITE;
 /*!40000 ALTER TABLE `product` DISABLE KEYS */;
-INSERT INTO `product` VALUES ('1d78a9cd-84cd-4118-a02c-b77340e00bdb','e641e020-06b8-44c0-a922-5846e584173f','OK9100B','Power Sled',1,'2025-11-12 11:35:45','2025-11-12 11:35:45'),('7c226146-baef-4f61-be44-5621f1fe9d35','e641e020-06b8-44c0-a922-5846e584173f','OK1224','1050D \nNylon cloth, \nNo. 10 YKK zipper PP cotton + rubber particles',1,'2025-11-12 11:35:45','2025-11-18 02:46:07'),('bc577c42-34d4-4548-92db-b75398c66ae2','e641e020-06b8-44c0-a922-5846e584173f','OK1013','Rubber Hex Dumbbell',1,'2025-11-12 11:35:45','2025-11-12 11:35:45');
+INSERT INTO `product` VALUES ('1d78a9cd-84cd-4118-a02c-b77340e00bdb','e641e020-06b8-44c0-a922-5846e584173f','OK9100B','Power Sled',1,'61675af3-db1f-490e-a109-ff7bb050ba96','2025-11-12 11:35:45','2025-11-24 11:48:05'),('7c226146-baef-4f61-be44-5621f1fe9d35','e641e020-06b8-44c0-a922-5846e584173f','OK1224','1050D \nNylon cloth, \nNo. 10 YKK zipper PP cotton + rubber particles',1,'f919014b-8bb0-455d-a02b-9020c278d826','2025-11-12 11:35:45','2025-11-24 11:48:05'),('bc577c42-34d4-4548-92db-b75398c66ae2','e641e020-06b8-44c0-a922-5846e584173f','OK1013','Rubber Hex Dumbbell',1,'1545ed9e-e63f-40d0-baca-4dbc3fd35657','2025-11-12 11:35:45','2025-11-24 11:48:05');
 /*!40000 ALTER TABLE `product` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -262,4 +264,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-11-20 21:40:22
+-- Dump completed on 2025-11-24 19:48:57
