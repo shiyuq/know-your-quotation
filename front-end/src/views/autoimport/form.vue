@@ -28,7 +28,7 @@ defineExpose({ getRef });
     :rules="formRules"
     label-width="82px"
   >
-    <el-form-item label="角色名称" prop="name">
+    <el-form-item label="产品名称" prop="name">
       <el-input
         v-model="newFormInline.name"
         clearable

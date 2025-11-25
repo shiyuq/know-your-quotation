@@ -52,7 +52,7 @@ export class AuthService {
     return {
       accessToken: `Bearer ${token}`,
       username: user.username,
-      tenantId: '',
+      tenantId: user.tenantId,
       tenantName: tenantInfo.name,
       role: user.role,
     };

@@ -122,7 +122,52 @@ export class ProductService {
   }
 
   async listProductSku(user: UserInfo, dto: ListProductDto) {
-    return true;
+    const qb = this.skuRepository
+      .createQueryBuilder('sku')
+      .innerJoinAndSelect('sku.product', 'product')
+      .innerJoinAndSelect('product.image', 'image')
+      .where('sku.tenantId = :tenantId', { tenantId: user.tenantId });
+
+    if (dto.productNo) {
+      qb.andWhere('product.name LIKE :name', { name: `%${dto.productNo}%` });
+    }
+
+    if (dto.skuCode) {
+      qb.andWhere('sku.skuCode LIKE :skuCode', { skuCode: `%${dto.skuCode}%` });
+    }
+
+    if (dto.status !== undefined) {
+      qb.andWhere('sku.status = :status', { status: dto.status });
+    }
+
+    const [list, total] = await qb
+      .orderBy('sku.productId', 'DESC')
+      .addOrderBy('sku.createTime', 'ASC')
+      .skip((dto.pageIndex - 1) * dto.pageSize)
+      .take(dto.pageSize)
+      .getManyAndCount();
+    return {
+      list: _.map(list, (i) => ({
+        productId: i.productId,
+        skuCode: i.skuCode,
+        pricingTypeDesc:
+          i.pricingType === PricingType.PriceByUnit
+            ? PricingImportType.PriceByUnitString
+            : PricingImportType.PriceByAttributeString,
+        attributeValue: i.attributeValue,
+        weight: `${i.weight}kg`,
+        unitPrice: i.unitPrice,
+        desc: i.desc,
+        status: i.status,
+        productName: i.product.name,
+        productDesc: i.product.desc,
+        image: `data:image/png;base64,${i.product.image.base64Data}`,
+        createTime: i.createTime,
+      })),
+      total,
+      currentPage: dto.pageIndex,
+      pageSize: dto.pageSize,
+    };
   }
 
   private async saveSKU(

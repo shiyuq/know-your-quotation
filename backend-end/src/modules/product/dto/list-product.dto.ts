@@ -1,4 +1,6 @@
-import { IsInt, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Min } from 'class-validator';
+
+import { ProductStatus } from '@/constants';
 
 export class ListProductDto {
   @IsInt()
@@ -8,4 +10,16 @@ export class ListProductDto {
   @IsInt()
   @Min(1)
   pageIndex: number = 1;
+
+  @IsString()
+  @IsOptional()
+  productNo?: string;
+
+  @IsString()
+  @IsOptional()
+  skuCode?: string;
+
+  @IsInt()
+  @IsOptional()
+  status?: ProductStatus;
 }

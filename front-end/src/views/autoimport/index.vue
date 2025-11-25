@@ -50,30 +50,16 @@ const treeHeight = ref();
 const {
   form,
   isShow,
-  curRow,
   loading,
   columns,
   rowStyle,
   dataList,
-  treeData,
-  treeProps,
-  isLinkage,
   pagination,
-  isExpandAll,
-  isSelectAll,
-  treeSearchValue,
-  // buttonClass,
   onSearch,
   resetForm,
   openDialog,
   openFileUploadDialog,
-  handleMenu,
-  handleSave,
   handleDelete,
-  filterMethod,
-  transformI18n,
-  onQueryChanged,
-  // handleDatabase,
   handleSizeChange,
   handleCurrentChange,
   handleSelectionChange
@@ -99,18 +85,18 @@ onMounted(() => {
       :model="form"
       class="search-form bg-bg_color w-full pl-8 pt-[12px] overflow-auto"
     >
-      <el-form-item label="角色名称：" prop="name">
+      <el-form-item label="产品型号：" prop="productNo">
         <el-input
-          v-model="form.name"
-          placeholder="请输入角色名称"
+          v-model="form.productNo"
+          placeholder="请输入产品型号"
           clearable
           class="w-[180px]!"
         />
       </el-form-item>
-      <el-form-item label="角色标识：" prop="code">
+      <el-form-item label="产品规格：" prop="skuCode">
         <el-input
-          v-model="form.code"
-          placeholder="请输入角色标识"
+          v-model="form.skuCode"
+          placeholder="请输入产品规格"
           clearable
           class="w-[180px]!"
         />
@@ -122,8 +108,8 @@ onMounted(() => {
           clearable
           class="w-[180px]!"
         >
-          <el-option label="已启用" value="1" />
-          <el-option label="已停用" value="0" />
+          <el-option label="在售" :value="1" />
+          <el-option label="下架" :value="0" />
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -183,6 +169,15 @@ onMounted(() => {
             @page-size-change="handleSizeChange"
             @page-current-change="handleCurrentChange"
           >
+            <template #imageOperation="{ row }">
+              <el-image
+                :src="row.image"
+                fit="contain"
+                preview-teleported
+                :preview-src-list="[row.image]"
+                class="w-[40px] h-[40px] rounded-[4px]"
+              />
+            </template>
             <template #operation="{ row }">
               <el-button
                 class="reset-margin"
@@ -195,7 +190,7 @@ onMounted(() => {
                 修改
               </el-button>
               <el-popconfirm
-                :title="`是否确认删除角色名称为${row.name}的这条数据`"
+                :title="`是否确认删除产品规格为${row.skuCode}的这条数据`"
                 @confirm="handleDelete(row)"
               >
                 <template #reference>
@@ -210,83 +205,10 @@ onMounted(() => {
                   </el-button>
                 </template>
               </el-popconfirm>
-              <el-button
-                class="reset-margin"
-                link
-                type="primary"
-                :size="size"
-                :icon="useRenderIcon(Menu)"
-                @click="handleMenu(row)"
-              >
-                权限
-              </el-button>
             </template>
           </pure-table>
         </template>
       </PureTableBar>
-
-      <div
-        v-if="isShow"
-        class="min-w-[calc(100vw-60vw-268px)]! w-full mt-2 px-2 pb-2 bg-bg_color ml-2 overflow-auto"
-      >
-        <div class="flex justify-between w-full px-3 pt-5 pb-4">
-          <div class="flex">
-            <span :class="iconClass">
-              <IconifyIconOffline
-                v-tippy="{
-                  content: '关闭'
-                }"
-                class="dark:text-white"
-                width="18px"
-                height="18px"
-                :icon="Close"
-                @click="handleMenu"
-              />
-            </span>
-            <span :class="[iconClass, 'ml-2']">
-              <IconifyIconOffline
-                v-tippy="{
-                  content: '保存菜单权限'
-                }"
-                class="dark:text-white"
-                width="18px"
-                height="18px"
-                :icon="Check"
-                @click="handleSave"
-              />
-            </span>
-          </div>
-          <p class="font-bold truncate">
-            菜单权限
-            {{ `${curRow?.name ? `（${curRow.name}）` : ""}` }}
-          </p>
-        </div>
-        <el-input
-          v-model="treeSearchValue"
-          placeholder="请输入菜单进行搜索"
-          class="mb-1"
-          clearable
-          @input="onQueryChanged"
-        />
-        <div class="flex flex-wrap">
-          <el-checkbox v-model="isExpandAll" label="展开/折叠" />
-          <el-checkbox v-model="isSelectAll" label="全选/全不选" />
-          <el-checkbox v-model="isLinkage" label="父子联动" />
-        </div>
-        <el-tree-v2
-          ref="treeRef"
-          show-checkbox
-          :data="treeData"
-          :props="treeProps"
-          :height="treeHeight"
-          :check-strictly="!isLinkage"
-          :filter-method="filterMethod"
-        >
-          <template #default="{ node }">
-            <span>{{ transformI18n(node.label) }}</span>
-          </template>
-        </el-tree-v2>
-      </div>
     </div>
   </div>
 </template>

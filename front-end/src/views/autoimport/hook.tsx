@@ -16,12 +16,7 @@ import {
   createFormData
 } from "@pureadmin/utils";
 
-import {
-  getRoleList,
-  getRoleMenu,
-  getRoleMenuIds,
-  importProduct
-} from "@/api/autoImport";
+import { getProductList, importProduct } from "@/api/autoImport";
 import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
 
 function usePublicHooks() {
@@ -62,9 +57,9 @@ function usePublicHooks() {
 
 export function useRole(treeRef: Ref) {
   const form = reactive({
-    name: "",
-    code: "",
-    status: ""
+    productNo: "",
+    skuCode: "",
+    status: undefined
   });
   const curRow = ref();
   const formRef = ref();
@@ -93,16 +88,26 @@ export function useRole(treeRef: Ref) {
   });
   const columns: TableColumnList = [
     {
-      label: "角色编号",
-      prop: "id"
+      label: "产品图",
+      slot: "imageOperation"
     },
     {
-      label: "角色名称",
-      prop: "name"
+      label: "产品型号",
+      prop: "productName"
     },
     {
-      label: "角色标识",
-      prop: "code"
+      label: "产品描述",
+      prop: "productDesc"
+    },
+    {
+      label: "产品规格",
+      prop: "skuCode"
+    },
+    {
+      label: "规格描述",
+      prop: "desc",
+      minWidth: 100,
+      showOverflowTooltip: true
     },
     {
       label: "状态",
@@ -113,31 +118,36 @@ export function useRole(treeRef: Ref) {
           v-model={scope.row.status}
           active-value={1}
           inactive-value={0}
-          active-text="已启用"
-          inactive-text="已停用"
+          active-text="在售"
+          inactive-text="下架"
           inline-prompt
           style={switchStyle.value}
           onChange={() => onChange(scope as any)}
         />
       ),
-      minWidth: 90
+      minWidth: 50
     },
     {
-      label: "备注",
-      prop: "remark",
-      minWidth: 160
+      label: "单价",
+      prop: "unitPrice",
+      minWidth: 50
+    },
+    {
+      label: "重量",
+      prop: "weight",
+      minWidth: 50
     },
     {
       label: "创建时间",
       prop: "createTime",
-      minWidth: 160,
+      minWidth: 100,
       formatter: ({ createTime }) =>
         dayjs(createTime).format("YYYY-MM-DD HH:mm:ss")
     },
     {
       label: "操作",
       fixed: "right",
-      width: 210,
+      width: 160,
       slot: "operation"
     }
   ];
@@ -154,9 +164,9 @@ export function useRole(treeRef: Ref) {
   function onChange({ row, index }) {
     ElMessageBox.confirm(
       `确认要<strong>${
-        row.status === 0 ? "停用" : "启用"
+        row.status === 0 ? "下架" : "上架"
       }</strong><strong style='color:var(--el-color-primary)'>${
-        row.name
+        row.skuCode
       }</strong>吗?`,
       "系统提示",
       {
@@ -183,7 +193,7 @@ export function useRole(treeRef: Ref) {
               loading: false
             }
           );
-          message(`已${row.status === 0 ? "停用" : "启用"}${row.name}`, {
+          message(`已${row.status === 0 ? "下架" : "上架"}${row.skuCode}`, {
             type: "success"
           });
         }, 300);
@@ -199,20 +209,28 @@ export function useRole(treeRef: Ref) {
   }
 
   function handleSizeChange(val: number) {
-    console.log(`${val} items per page`);
+    pagination.pageSize = val;
+    pagination.currentPage = 1;
+    onSearch();
   }
 
   function handleCurrentChange(val: number) {
-    console.log(`current page: ${val}`);
+    // 分页查询
+    pagination.currentPage = val;
+    onSearch();
   }
 
   function handleSelectionChange(val) {
-    console.log("handleSelectionChange", val);
+    // console.log("handleSelectionChange", val);
   }
 
   async function onSearch() {
     loading.value = true;
-    const data = await getRoleList(toRaw(form));
+    const data = await getProductList({
+      ...toRaw(form),
+      pageSize: pagination.pageSize,
+      pageIndex: pagination.currentPage
+    });
     dataList.value = data.list;
     pagination.total = data.total;
     pagination.pageSize = data.pageSize;
@@ -309,36 +327,12 @@ export function useRole(treeRef: Ref) {
     });
   }
 
-  /** 菜单权限 */
-  async function handleMenu(row?: any) {
-    const { id } = row;
-    if (id) {
-      curRow.value = row;
-      isShow.value = true;
-      const { data } = await getRoleMenuIds({ id });
-      treeRef.value.setCheckedKeys(data);
-    } else {
-      curRow.value = null;
-      isShow.value = false;
-    }
-  }
-
   /** 高亮当前权限选中行 */
   function rowStyle({ row: { id } }) {
     return {
       cursor: "pointer",
       background: id === curRow.value?.id ? "var(--el-fill-color-light)" : ""
     };
-  }
-
-  /** 菜单权限-保存 */
-  function handleSave() {
-    const { id, name } = curRow.value;
-    // 根据用户 id 调用实际项目中菜单权限修改接口
-    console.log(id, treeRef.value.getCheckedKeys());
-    message(`角色名称为${name}的菜单权限修改成功`, {
-      type: "success"
-    });
   }
 
   /** 数据权限 可自行开发 */
@@ -354,9 +348,6 @@ export function useRole(treeRef: Ref) {
 
   onMounted(async () => {
     onSearch();
-    const data: any = await getRoleMenu();
-    treeIds.value = getKeyList(data, "id");
-    treeData.value = handleTree(data);
   });
 
   watch(isExpandAll, val => {
@@ -391,8 +382,6 @@ export function useRole(treeRef: Ref) {
     resetForm,
     openDialog,
     openFileUploadDialog,
-    handleMenu,
-    handleSave,
     handleDelete,
     filterMethod,
     transformI18n,

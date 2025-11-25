@@ -59,7 +59,7 @@ const autoImportRouter = {
   path: "/autoimport",
   meta: {
     title: "自动导入",
-    icon: "ep:lollipop",
+    icon: "ep:histogram",
     rank: 11
   },
   children: [
@@ -67,8 +67,27 @@ const autoImportRouter = {
       path: "/autoimport/index",
       name: "AutoImport",
       meta: {
-        title: "自动导入",
+        title: "产品管理",
         roles: ["boss"]
+      }
+    }
+  ]
+};
+
+const quotationRouter = {
+  path: "/quotation",
+  meta: {
+    title: "报价管理",
+    icon: "ep:price-tag",
+    rank: 12
+  },
+  children: [
+    {
+      path: "/quotation/index",
+      name: "Quotation",
+      meta: {
+        title: "报价管理",
+        roles: ["boss", "staff"]
       }
     }
   ]
@@ -81,7 +100,7 @@ export default defineFakeRoute([
     response: () => {
       return {
         status: 200,
-        data: [permissionRouter, autoImportRouter]
+        data: [permissionRouter, autoImportRouter, quotationRouter]
       };
     }
   }
