@@ -13,7 +13,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Permisson, BusinessErrorHelper } from '@/common';
 import { PermissonEnum, GlobalRole } from '@/constants';
 import { ProductService } from '../services/product.service';
+import { ListProductSkuDto } from '../dto/list-product-sku.dto';
 import { ListProductDto } from '../dto/list-product.dto';
+import { ListSkuDto } from '../dto/list-sku.dto';
 
 @Controller('product')
 export class ProductController {
@@ -48,9 +50,21 @@ export class ProductController {
     return this.productService.leadinProduct(req.user, file.buffer);
   }
 
-  @Post('list')
+  @Post('list-sku')
   @Permisson(PermissonEnum.listProductSku)
-  listProductSku(@Request() req: any, @Body() dto: ListProductDto) {
+  listAllSku(@Request() req: any, @Body() dto: ListProductSkuDto) {
     return this.productService.listProductSku(req.user, dto);
+  }
+
+  @Post('list')
+  @Permisson(PermissonEnum.listProduct)
+  listProduct(@Request() req: any, @Body() dto: ListProductDto) {
+    return this.productService.listProduct(req.user, dto);
+  }
+
+  @Post('sku')
+  @Permisson(PermissonEnum.listSku)
+  listProductSku(@Request() req: any, @Body() dto: ListSkuDto) {
+    return this.productService.listSku(req.user, dto);
   }
 }

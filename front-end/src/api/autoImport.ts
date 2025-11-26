@@ -17,7 +17,15 @@ type ResultTable = {
 };
 
 export const getProductList = (data?: object) => {
+  return http.request<ResultTable>("post", "/api/product/list-sku", { data });
+};
+
+export const searchProduct = (data?: object) => {
   return http.request<ResultTable>("post", "/api/product/list", { data });
+};
+
+export const getSkusByProductId = (data?: object) => {
+  return http.request<ResultTable>("post", "/api/product/sku", { data });
 };
 
 export const importProduct = (data?: object) => {

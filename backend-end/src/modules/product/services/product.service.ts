@@ -8,11 +8,13 @@ import {
   PricingType,
   PricingImportType,
 } from '@/constants';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, Like } from 'typeorm';
 import { ProductEntity, ImageEntity, SKUEntity } from '@/database/entities';
 import { UtilService } from '@/modules/global/util/services/util.service';
 import { BusinessErrorHelper } from '@/common';
+import { ListProductSkuDto } from '../dto/list-product-sku.dto';
 import { ListProductDto } from '../dto/list-product.dto';
+import { ListSkuDto } from '../dto/list-sku.dto';
 
 interface LeadinProductRow {
   name: string;
@@ -121,7 +123,7 @@ export class ProductService {
     return result;
   }
 
-  async listProductSku(user: UserInfo, dto: ListProductDto) {
+  async listProductSku(user: UserInfo, dto: ListProductSkuDto) {
     const qb = this.skuRepository
       .createQueryBuilder('sku')
       .innerJoinAndSelect('sku.product', 'product')
@@ -168,6 +170,31 @@ export class ProductService {
       currentPage: dto.pageIndex,
       pageSize: dto.pageSize,
     };
+  }
+
+  async listProduct(user: UserInfo, dto: ListProductDto) {
+    const res = await this.productRepository.find({
+      where: {
+        tenantId: user.tenantId,
+        name: Like(`%${dto.productNo}%`),
+        status: ProductStatus.Valid,
+      },
+      select: ['id', 'name', 'desc'],
+      take: dto.pageSize,
+    });
+    return { list: res };
+  }
+
+  async listSku(user: UserInfo, dto: ListSkuDto) {
+    const res = await this.skuRepository.find({
+      where: {
+        tenantId: user.tenantId,
+        productId: dto.productId,
+        status: ProductStatus.Valid,
+      },
+      select: ['skuCode', 'desc', 'unitPrice', 'unit', 'weight'],
+    });
+    return { list: res };
   }
 
   private async saveSKU(
