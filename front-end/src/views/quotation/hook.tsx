@@ -6,7 +6,11 @@ import { handleTree } from "@/utils/tree";
 import { message } from "@/utils/message";
 import { transformI18n } from "@/plugins/i18n";
 
-import { searchProduct, getSkusByProductId } from "@/api/autoImport";
+import {
+  searchProduct,
+  getSkusByProductId,
+  makeQuotation
+} from "@/api/autoImport";
 import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
 
 export function useQuotation(treeRef: Ref) {
@@ -18,7 +22,7 @@ export function useQuotation(treeRef: Ref) {
   const isShow = ref(false);
   const loading = ref(true);
   const quotation = ref([]);
-  const columns: TableColumnList = [
+  const columns = [
     {
       label: "规格",
       prop: "skuCode"
@@ -34,10 +38,9 @@ export function useQuotation(treeRef: Ref) {
     },
     {
       label: "数量",
-      cellRenderer: scope => (
-        <el-input-number v-model={scope.row.count} min={0} />
-      ),
-      minWidth: 50
+      prop: "count",
+      cellRenderer: row => <el-input-number v-model={row.count} min={0} />,
+      minWidth: 100
     },
     {
       label: "单价",
@@ -103,6 +106,44 @@ export function useQuotation(treeRef: Ref) {
     );
   };
 
+  const downloadFromBuffer = (buffer, filename) => {
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const exportQuotation = async () => {
+    if (quotation.value.length === 0) {
+      message("报价单内无产品", { type: "warning" });
+      return;
+    }
+    const products = quotation.value
+      .map(item =>
+        item.skuList
+          .map(i => ({
+            skuCode: i.skuCode,
+            quantity: i.count
+          }))
+          .filter(i => i.quantity > 0)
+      )
+      .flat();
+
+    if (products.length === 0) {
+      message("请输入规格数量", { type: "warning" });
+      return;
+    }
+
+    const buffer: any = await makeQuotation({ products });
+    downloadFromBuffer(new Uint8Array(buffer.data).buffer, "报价单.xlsx");
+  };
+
   onMounted(async () => {
     onSearch();
   });
@@ -117,6 +158,7 @@ export function useQuotation(treeRef: Ref) {
     addIntoQuotation,
     handleRemove,
     columns,
+    exportQuotation,
     transformI18n
   };
 }

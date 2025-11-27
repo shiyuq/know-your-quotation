@@ -2,6 +2,7 @@ import {
   IsArray,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   Min,
@@ -21,8 +22,8 @@ export class ProductItemDto {
 
 export class MakeQuotationDto {
   @IsUUID()
-  @IsNotEmpty()
-  customerId: string;
+  @IsOptional()
+  customerId: string = 'd4027712-4a88-4770-96cc-4eae2b14fe51';
 
   @IsArray()
   @IsNotEmpty()

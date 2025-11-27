@@ -28,6 +28,10 @@ export const getSkusByProductId = (data?: object) => {
   return http.request<ResultTable>("post", "/api/product/sku", { data });
 };
 
+export const makeQuotation = (data?: object) => {
+  return http.request("post", "/api/quotation/make", { data });
+};
+
 export const importProduct = (data?: object) => {
   return http.request<Result>(
     "post",

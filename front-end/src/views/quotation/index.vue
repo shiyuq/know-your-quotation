@@ -22,6 +22,7 @@ const {
   isShow,
   loading,
   dataList,
+  exportQuotation,
   remoteMethod,
   addIntoQuotation,
   handleRemove,
@@ -65,7 +66,11 @@ const {
         >
           加入报价单
         </el-button>
-        <el-button color="#626aef" :icon="useRenderIcon('ep:tickets')">
+        <el-button
+          color="#626aef"
+          :icon="useRenderIcon('ep:tickets')"
+          @click="exportQuotation"
+        >
           导出报价单为EXCEL
         </el-button>
       </el-form-item>
@@ -103,21 +108,30 @@ const {
               </el-popconfirm>
             </template>
             <div>
-              <pure-table
-                ref="tableRef"
-                align-whole="center"
+              <el-table
                 showOverflowTooltip
-                adaptive
-                :adaptiveConfig="{ offsetBottom: 108 }"
                 :data="item.skuList"
-                :columns="columns"
                 :pagination="null"
                 :header-cell-style="{
                   background: 'var(--el-fill-color-light)',
                   color: 'var(--el-text-color-primary)'
                 }"
               >
-              </pure-table>
+                <el-table-column
+                  v-for="col in columns"
+                  :label="col.label"
+                  :prop="col.prop"
+                  :min-width="col.minWidth"
+                  :formatter="col.formatter"
+                >
+                  <template #default="{ row }">
+                    <component
+                      v-if="col.cellRenderer"
+                      :is="col.cellRenderer(row)"
+                    />
+                  </template>
+                </el-table-column>
+              </el-table>
             </div>
           </el-collapse-item>
         </el-collapse>

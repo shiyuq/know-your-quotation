@@ -91,11 +91,13 @@ export class QuotationService {
     // 设置单元格边框
     this.setHoleBorder(sheet);
 
-    await workbook.xlsx.writeFile('src/temp/quote.xlsx');
+    return workbook.xlsx.writeBuffer();
 
-    child_process.exec(`start "" "${path.resolve('src/temp/quote.xlsx')}"`);
+    // await workbook.xlsx.writeFile('src/temp/quote.xlsx');
 
-    return skuMap;
+    // child_process.exec(`start "" "${path.resolve('src/temp/quote.xlsx')}"`);
+
+    // return skuMap;
   }
 
   private calculateImageSize(base64Data: string, rowHeight: number) {
