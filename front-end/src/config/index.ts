@@ -1,5 +1,5 @@
-import axios from "axios";
 import type { App } from "vue";
+import axios from "axios";
 
 let config: object = {};
 const { VITE_PUBLIC_PATH } = import.meta.env;

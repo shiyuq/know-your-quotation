@@ -35,6 +35,35 @@ services:
     networks:
       - app_net
 
+  backend:
+    build:
+      context: ./backend-end
+    container_name: quotation_backend
+    restart: always
+    env_file:
+      - ./backend-end/.env.production
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - mysql
+      - mongo
+      - redis
+    ports:
+      - "3000:3000"
+    networks:
+      - app_net
+
+  front:
+    build:
+      context: ./front-end
+    container_name: quotation_front
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - app_net
 networks:
   app_net:
     driver: bridge

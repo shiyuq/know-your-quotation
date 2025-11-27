@@ -16,8 +16,12 @@ async function bootstrap() {
     bufferLogs: true,
     logger: new StructuredLogger(),
   });
+
   // 跨域配置
-  // app.enableCors();
+  app.enableCors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  });
 
   // 全局中间件
   // logger日志中间件
