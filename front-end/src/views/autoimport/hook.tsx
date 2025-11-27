@@ -16,7 +16,12 @@ import {
   createFormData
 } from "@pureadmin/utils";
 
-import { getProductList, importProduct } from "@/api/autoImport";
+import {
+  getProductList,
+  importProduct,
+  deleteSku,
+  offlineSku
+} from "@/api/autoImport";
 import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
 
 function usePublicHooks() {
@@ -185,7 +190,7 @@ export function useRole(treeRef: Ref) {
             loading: true
           }
         );
-        setTimeout(() => {
+        offlineSku({ skuCode: row.skuCode }).then(() => {
           switchLoadMap.value[index] = Object.assign(
             {},
             switchLoadMap.value[index],
@@ -196,15 +201,16 @@ export function useRole(treeRef: Ref) {
           message(`已${row.status === 0 ? "下架" : "上架"}${row.skuCode}`, {
             type: "success"
           });
-        }, 300);
+        });
       })
       .catch(() => {
         row.status === 0 ? (row.status = 1) : (row.status = 0);
       });
   }
 
-  function handleDelete(row) {
-    message(`您删除了角色名称为${row.name}的这条数据`, { type: "success" });
+  async function handleDelete(row) {
+    await deleteSku({ skuCode: row.skuCode });
+    message(`您删除了规格：${row.skuCode}`, { type: "success" });
     onSearch();
   }
 

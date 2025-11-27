@@ -100,7 +100,7 @@ export default defineFakeRoute([
     response: () => {
       return {
         status: 200,
-        data: [permissionRouter, autoImportRouter, quotationRouter]
+        data: [autoImportRouter, quotationRouter]
       };
     }
   }

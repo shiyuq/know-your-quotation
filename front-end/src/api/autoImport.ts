@@ -42,3 +42,11 @@ export const importProduct = (data?: object) => {
     }
   );
 };
+
+export const deleteSku = (data?: object) => {
+  return http.request<Result>("post", "/api/product/delete-sku", { data });
+};
+
+export const offlineSku = (data?: object) => {
+  return http.request<Result>("post", "/api/product/offline-sku", { data });
+};

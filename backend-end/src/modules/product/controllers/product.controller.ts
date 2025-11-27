@@ -16,6 +16,7 @@ import { ProductService } from '../services/product.service';
 import { ListProductSkuDto } from '../dto/list-product-sku.dto';
 import { ListProductDto } from '../dto/list-product.dto';
 import { ListSkuDto } from '../dto/list-sku.dto';
+import { DeleteSkuDto } from '../dto/delete-sku.dto';
 
 @Controller('product')
 export class ProductController {
@@ -66,5 +67,17 @@ export class ProductController {
   @Permisson(PermissonEnum.listSku)
   listProductSku(@Request() req: any, @Body() dto: ListSkuDto) {
     return this.productService.listSku(req.user, dto);
+  }
+
+  @Post('delete-sku')
+  @Permisson(PermissonEnum.deleteSku)
+  deleteSku(@Request() req: any, @Body() dto: DeleteSkuDto) {
+    return this.productService.deleteSku(req.user, dto);
+  }
+
+  @Post('offline-sku')
+  @Permisson(PermissonEnum.offlineSku)
+  offlineSku(@Request() req: any, @Body() dto: DeleteSkuDto) {
+    return this.productService.offlineSku(req.user, dto);
   }
 }

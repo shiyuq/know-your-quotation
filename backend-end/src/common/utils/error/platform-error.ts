@@ -15,4 +15,8 @@ export class PlatformErrorHelper {
       '图片数量和产品数量不匹配',
     );
   }
+
+  static skuNotFound(): never {
+    throw new BusinessException(ErrorCodeEnum.SKU_NOT_FOUND, 'SKU不存在');
+  }
 }

@@ -15,6 +15,8 @@ export enum PermissonEnum {
   leadinProduct = 'leadin:product',
   listProduct = 'list:product',
   listSku = 'list:sku',
+  deleteSku = 'delete:sku',
+  offlineSku = 'offline:sku',
   listProductSku = 'list:product:sku',
   makeQuotation = 'make:quotation',
 }
@@ -28,6 +30,8 @@ export const RolePermissions: Record<GlobalRole, string[]> = {
     PermissonEnum.listProduct,
     PermissonEnum.listSku,
     PermissonEnum.listProductSku,
+    PermissonEnum.deleteSku,
+    PermissonEnum.offlineSku,
   ],
   [GlobalRole.STAFF]: [
     PermissonEnum.authSignIn,
@@ -35,5 +39,7 @@ export const RolePermissions: Record<GlobalRole, string[]> = {
     PermissonEnum.listProduct,
     PermissonEnum.listSku,
     PermissonEnum.listProductSku,
+    PermissonEnum.deleteSku,
+    PermissonEnum.offlineSku,
   ],
 };

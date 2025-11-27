@@ -15,8 +15,10 @@ import { BusinessErrorHelper } from '@/common';
 import { ListProductSkuDto } from '../dto/list-product-sku.dto';
 import { ListProductDto } from '../dto/list-product.dto';
 import { ListSkuDto } from '../dto/list-sku.dto';
+import { DeleteSkuDto } from '../dto/delete-sku.dto';
 
 interface LeadinProductRow {
+  order: number;
   name: string;
   productDesc: string;
   pricingType: PricingImportType;
@@ -144,7 +146,7 @@ export class ProductService {
 
     const [list, total] = await qb
       .orderBy('sku.productId', 'DESC')
-      .addOrderBy('sku.createTime', 'ASC')
+      .addOrderBy('sku.order', 'ASC')
       .skip((dto.pageIndex - 1) * dto.pageSize)
       .take(dto.pageSize)
       .getManyAndCount();
@@ -193,8 +195,41 @@ export class ProductService {
         status: ProductStatus.Valid,
       },
       select: ['skuCode', 'desc', 'unitPrice', 'unit', 'weight'],
+      order: { order: 'ASC' },
     });
     return { list: res };
+  }
+
+  async deleteSku(user: UserInfo, dto: DeleteSkuDto) {
+    const sku = await this.skuRepository.findOne({
+      where: {
+        tenantId: user.tenantId,
+        skuCode: dto.skuCode,
+      },
+    });
+    if (!sku) {
+      return BusinessErrorHelper.Platform.skuNotFound();
+    }
+    await this.skuRepository.delete(sku);
+    return { skuCode: dto.skuCode };
+  }
+
+  async offlineSku(user: UserInfo, dto: DeleteSkuDto) {
+    const sku = await this.skuRepository.findOne({
+      where: {
+        tenantId: user.tenantId,
+        skuCode: dto.skuCode,
+      },
+    });
+    if (!sku) {
+      return BusinessErrorHelper.Platform.skuNotFound();
+    }
+    sku.status =
+      sku.status === ProductStatus.Valid
+        ? ProductStatus.InValid
+        : ProductStatus.Valid;
+    await this.skuRepository.save(sku);
+    return { skuCode: dto.skuCode };
   }
 
   private async saveSKU(
@@ -206,6 +241,7 @@ export class ProductService {
       attributeValue,
       skuCode,
       desc,
+      order,
       unit,
       unitPrice,
       status,
@@ -223,6 +259,7 @@ export class ProductService {
         productId,
         imageId,
         desc,
+        order,
         unit,
         unitPrice,
         weight,
@@ -252,6 +289,7 @@ export class ProductService {
       skuCode,
       imageId,
       desc,
+      order,
       unit,
       unitPrice,
       weight,
@@ -344,6 +382,7 @@ export class ProductService {
       ).split('*');
 
       const product = {
+        order: row.getCell(headerMap['序号']).value as number,
         name: row.getCell(headerMap['产品名称']).value as string,
         productDesc: row.getCell(headerMap['产品描述']).value as string,
         pricingType: row.getCell(headerMap['计价方式'])

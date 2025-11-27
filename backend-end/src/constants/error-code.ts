@@ -9,4 +9,5 @@ export enum ErrorCodeEnum {
 
   TENANT_ID_REQUIRED = 20301,
   FILE_AND_IMAGE_COUNT_NOT_MATCH = 20302,
+  SKU_NOT_FOUND = 20401,
 }

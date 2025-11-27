@@ -35,6 +35,9 @@ export class SKUEntity {
   @Column({ name: 'desc' })
   desc: string;
 
+  @Column({ name: 'order' })
+  order: number;
+
   @Column({ name: 'image_id' })
   imageId: string;
 

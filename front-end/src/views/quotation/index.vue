@@ -112,9 +112,11 @@ const {
                 showOverflowTooltip
                 :data="item.skuList"
                 :pagination="null"
+                :cell-style="{ textAlign: 'center' }"
                 :header-cell-style="{
                   background: 'var(--el-fill-color-light)',
-                  color: 'var(--el-text-color-primary)'
+                  color: 'var(--el-text-color-primary)',
+                  textAlign: 'center'
                 }"
               >
                 <el-table-column
