@@ -14,7 +14,7 @@ import { getToken, formatToken } from "@/utils/auth";
 import { useUserStoreHook } from "@/store/modules/user";
 import { message } from "@/utils/message";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL;
+const { VITE_API_BASE_URL, VITE_ENV } = import.meta.env;
 
 // 相关配置请参考：www.axios-js.com/zh-cn/docs/#axios-request-config-1
 const defaultConfig: AxiosRequestConfig = {
@@ -150,9 +150,11 @@ class PureHttp {
     param?: AxiosRequestConfig,
     axiosConfig?: PureHttpRequestConfig
   ): Promise<T> {
+    const isDev = VITE_ENV === "development";
     const config = {
       method,
-      url: `${baseURL}${url.replace(/^\/api/, "")}`,
+      url: isDev ? url : `${VITE_API_BASE_URL}${url.replace(/^\/api/, "")}`,
+      // url,
       ...param,
       ...axiosConfig
     } as PureHttpRequestConfig;
