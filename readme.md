@@ -19,6 +19,9 @@
 
 # 将迁移文件应用到数据库
 ./autoExport.sh
+
+# 导入迁移文件到数据库
+docker exec -i quotation_mysql mysql -uroot -pshiyuq know_your_quotation < migration/mysql/all-tables-data.sql
 ```
 
 ## TODO
@@ -29,9 +32,9 @@
 - [ ] 实时汇率计算 https://api.currencyapi.com/v3/latest?apikey=
 - [ ] 客户管理
 - [X] 报价管理
-- [ ] 导出为 excel 文件
-- [ ] 丰富报价管理功能，而不是简单的字段移植
-- [ ] 优化代码，减少冗余
+- [X] 导出为 excel 文件
+- [X] 丰富报价管理功能，而不是简单的字段移植
+- [X] 优化代码，减少冗余
 
 ## 维护者
 
