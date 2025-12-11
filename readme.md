@@ -4,11 +4,16 @@
 
 此系统主要是针对外贸等各个行业报价困难，时间长的问题，针对此类问题做了一个简易的报价系统，通过录入产品信息，选择客户，选择产品，选择价格，生成报价单，然后可以导出为 excel 文件，方便客户查看。
 
-## 如何启动项目
+## 本地如何启动项目
 
-1. docker-compose up -d --build
+1. docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 2. cd backend-end && npm install && npm run start:dev
 3. cd front-end && npm install && npm run dev
+
+## 本地如何布署项目
+
+1. docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+2. 访问 http://localhost:8080
 
 ## 脚本迁移
 

@@ -1,0 +1,14 @@
+# docker-compose.dev.yml
+
+services:
+  mysql:
+    ports:
+      - "3307:3306"
+
+  mongo:
+    ports:
+      - "27018:27017"
+
+  redis:
+    ports:
+      - "6380:6379"

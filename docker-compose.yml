@@ -1,3 +1,5 @@
+# docker-compose.yml
+
 services:
   mysql:
     image: mysql:8.0
@@ -5,12 +7,14 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: shiyuq
       MYSQL_DATABASE: know_your_quotation
-    ports:
-      - "3307:3306"
     volumes:
       - ./db/mysql:/var/lib/mysql
     networks:
       - app_net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
 
   mongo:
     image: mongo:6
@@ -18,52 +22,29 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: superadmin
       MONGO_INITDB_ROOT_PASSWORD: shiyuq
-    ports:
-      - "27018:27017"
     volumes:
       - ./db/mongo:/data/db
     networks:
       - app_net
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   redis:
     image: redis:7
     container_name: quotation_redis
-    ports:
-      - "6380:6379"
     volumes:
       - ./db/redis:/data
     networks:
       - app_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  backend:
-    build:
-      context: ./backend-end
-    container_name: quotation_backend
-    restart: always
-    env_file:
-      - ./backend-end/.env.production
-    environment:
-      NODE_ENV: production
-    depends_on:
-      - mysql
-      - mongo
-      - redis
-    ports:
-      - "3000:3000"
-    networks:
-      - app_net
-
-  front:
-    build:
-      context: ./front-end
-    container_name: quotation_front
-    restart: always
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
-    networks:
-      - app_net
 networks:
   app_net:
     driver: bridge
