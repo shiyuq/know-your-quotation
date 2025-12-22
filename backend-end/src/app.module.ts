@@ -4,6 +4,7 @@ import {
   AllExceptionsFilter,
   AuthGuard,
   HttpLoggerMiddleware,
+  LoggingInterceptor,
   TransformInterceptor,
 } from '@/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -30,6 +31,7 @@ import { AppController } from './app.controller';
 // import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
+import { LoggerModule } from 'nestjs-pino';
 import { MongooseModule } from '@nestjs/mongoose';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { jwtConstants } from '@/constants';
@@ -86,6 +88,32 @@ import { jwtConstants } from '@/constants';
       introspection: true,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        base: {},
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+        transport:
+          process.env.NODE_ENV === 'production'
+            ? undefined
+            : {
+                target: 'pino-pretty',
+                options: { colorize: true, singleLine: true },
+              },
+        serializers: {
+          req: (req) => ({
+            method: req.method,
+            url: req.url,
+            query: req.query,
+            body: req.body,
+            userId: req.user?.sub,
+            tenantId: req.user?.tenantId,
+            traceId: req.traceId,
+          }),
+        },
+        redact: ['req.headers.authorization', 'req.body.password'],
+        autoLogging: false,
+      },
+    }),
     TodoModule,
     AuthModule,
     UsersModule,
@@ -120,13 +148,17 @@ import { jwtConstants } from '@/constants';
       useClass: TransformInterceptor,
     },
     {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(HttpLoggerMiddleware).forRoutes('*'); // 对所有路由生效
-  }
+export class AppModule {
+  // configure(consumer: MiddlewareConsumer) {
+  //   consumer.apply(HttpLoggerMiddleware).forRoutes('*'); // 对所有路由生效
+  // }
 }

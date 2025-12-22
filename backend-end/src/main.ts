@@ -8,13 +8,14 @@ import { NestFactory } from '@nestjs/core';
 // import { Reflector } from '@nestjs/core';
 import { StructuredLogger, HttpLoggerMiddleware } from '@/common';
 import helmet from 'helmet';
+import { Logger } from 'nestjs-pino';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     cors: true,
     snapshot: true,
     bufferLogs: true,
-    logger: new StructuredLogger(),
+    // logger: new StructuredLogger(),
   });
 
   // 跨域配置
@@ -75,6 +76,8 @@ async function bootstrap() {
    * 推荐使用第三种方式，全局使用，这样就不需要在每个类或方法上使用了
    */
   // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
+  app.useLogger(app.get(Logger));
 
   const configService = app.get(ConfigService<AllConfigType>);
   await app.listen(configService.getOrThrow('app.port', { infer: true }));

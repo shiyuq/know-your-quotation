@@ -6,6 +6,7 @@ export * from './filters/business-exception-filter';
 export * from './guard/auth.guard';
 export * from './guard/role.guard';
 export * from './interceptor/global.interceptor';
+export * from './interceptor/logging.interceptor';
 export * from './middleware/logger.middleware';
 export * from './utils/business-error';
 export * from './log/logger.service';

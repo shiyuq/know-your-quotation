@@ -1,0 +1,83 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: quotation-backend-by-label
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+
+    relabel_configs:
+      # 只保留带有 com.example.logging 标签且值为 quotation_backend 的容器
+      - source_labels: ['__meta_docker_container_label_com_example_logging']
+        regex: 'quotation_backend'
+        action: keep
+
+      # 给日志打上 container 标签（方便 Grafana 查询）
+      - source_labels: ['__meta_docker_container_name']
+        target_label: 'container'
+
+      # 告诉 promtail 日志文件实际路径
+      - source_labels: ['__meta_docker_container_log_path']
+        target_label: '__path__'
+
+
+    # 提取 JSON 字段
+    # {
+    #   "level": 30,
+    #   "time": 1766392039481,
+    #   "req": {
+    #     "method": "POST",
+    #     "url": "/product/list-sku",
+    #     "query": {}
+    #   },
+    #   "traceId": "ae44e67e-321d-4e74-a3ed-018fff77f81e",
+    #   "userId": "0d3d12c7-385c-4b2c-b1b5-8514c12359e1",
+    #   "tenantId": "e641e020-06b8-44c0-a922-5846e584173f",
+    #   "request": {
+    #     "method": "POST",
+    #     "url": "/product/list-sku",
+    #     "query": {},
+    #     "body": {
+    #       "productNo": "",
+    #       "skuCode": "",
+    #       "pageSize": 10,
+    #       "pageIndex": 1
+    #     }
+    #   },
+    #   "response": {
+    #     "statusCode": 201,
+    #     "durationMs": 10.396597
+    #   },
+    #   "client": {
+    #     "ip": "::ffff:172.18.0.6",
+    #     "userAgent": "Mozilla/5.0(WindowsNT10.0;Win64;x64)AppleWebKit/537.36(KHTML,likeGecko)Chrome/143.0.0.0Safari/537.36"
+    #   },
+    #   "msg": "HTTPrequestcompleted"
+    # }
+    pipeline_stages:
+      - json:
+          expressions:
+            traceId: traceId
+            userId: userId
+            tenantId: tenantId
+            url: request.url       # 提取请求路径
+            query: request.query   # 提取 query
+            body: request.body     # 提取 body（注意长度）
+            method: request.method # 提取请求方法
+            status: response.statusCode # 提取响应状态码
+            responseTime: response.durationMs # 提取响应时间
+            ip: client.ip
+            userAgent: client.userAgent
+      - labels:
+          tenantId:
+          url:
+          method:
+          status:
