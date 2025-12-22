@@ -22,12 +22,18 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = this.getRequest(context);
+
+    // ✅ 放行 Prometheus metrics
+    if (request.method === 'GET' && request.url === '/metrics') {
+      return true;
+    }
+
     const isPublic = this.reflector.get(Public, context.getHandler());
     if (isPublic) {
       return true;
     }
 
-    const request = this.getRequest(context);
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();

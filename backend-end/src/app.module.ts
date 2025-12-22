@@ -28,11 +28,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { AppController } from './app.controller';
-// import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
 import { MongooseModule } from '@nestjs/mongoose';
+// import { DevtoolsModule } from '@nestjs/devtools-integration';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { jwtConstants } from '@/constants';
 
@@ -112,6 +113,19 @@ import { jwtConstants } from '@/constants';
         },
         redact: ['req.headers.authorization', 'req.body.password'],
         autoLogging: false,
+      },
+    }),
+    PrometheusModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<AllConfigType>) => {
+        const app = configService.getOrThrow('app', { infer: true });
+        return {
+          path: '/metrics',
+          defaultLabels: {
+            app: app.serviceName,
+          },
+        };
       },
     }),
     TodoModule,
