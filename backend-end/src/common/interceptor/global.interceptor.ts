@@ -6,6 +6,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 
+import { INFRA_PATHS } from '@/constants';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -17,6 +18,11 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
     if ((context.getType() as string) === 'graphql') {
       return next.handle();
     } else {
+      const req = context.switchToHttp().getRequest();
+      // 🚨 跳过 Prometheus metrics
+      if (INFRA_PATHS.includes(req.url)) {
+        return next.handle();
+      }
       return next.handle().pipe(
         map((data) => {
           // 在这里对正常返回的数据统一组装

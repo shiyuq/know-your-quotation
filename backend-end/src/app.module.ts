@@ -5,6 +5,8 @@ import {
   AuthGuard,
   HttpLoggerMiddleware,
   LoggingInterceptor,
+  MetricsInterceptor,
+  SafeClassSerializerInterceptor,
   TransformInterceptor,
 } from '@/common';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -17,14 +19,13 @@ import {
   UsersModule,
   UtilModule,
 } from '@/modules';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
-  ClassSerializerInterceptor,
   MiddlewareConsumer,
   Module,
   NestModule,
   ValidationPipe,
 } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { AppController } from './app.controller';
@@ -155,15 +156,19 @@ import { jwtConstants } from '@/constants';
     },
     {
       provide: APP_INTERCEPTOR,
-      useClass: ClassSerializerInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: TransformInterceptor,
+      useClass: MetricsInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SafeClassSerializerInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransformInterceptor,
     },
     {
       provide: APP_GUARD,

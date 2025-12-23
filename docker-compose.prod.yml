@@ -1,6 +1,7 @@
 volumes:
   loki_data: # 声明命名卷
   grafana_data: # 新增命名卷
+  prometheus_data: # 新增命名卷
 
 services:
   loki:
@@ -34,6 +35,20 @@ services:
       - grafana_data:/var/lib/grafana
     depends_on:
       - loki
+
+  prometheus:
+    image: prom/prometheus:v3.8.1
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command: -config.file=/etc/prometheus/prometheus.yml
+    networks:
+      - app_net
+    depends_on:
+      - backend
 
   backend:
     build:

@@ -7,6 +7,8 @@ export * from './guard/auth.guard';
 export * from './guard/role.guard';
 export * from './interceptor/global.interceptor';
 export * from './interceptor/logging.interceptor';
+export * from './interceptor/metric.interceptor';
+export * from './interceptor/class-serializer.interceptor';
 export * from './middleware/logger.middleware';
 export * from './utils/business-error';
 export * from './log/logger.service';
