@@ -19,7 +19,7 @@ import { logLevel } from 'kafkajs';
           client: {
             clientId: 'nest-producer', // 可从 config 读取
             brokers: ['localhost:9092', 'localhost:9192', 'localhost:9292'], // 单节点
-            logLevel: logLevel.DEBUG,
+            // logLevel: logLevel.DEBUG,
             // 多节点示例：['localhost:9092', 'localhost:9093', 'localhost:9094']
           },
           producerOnlyMode: true, // 只作为生产者，不启动消费者
