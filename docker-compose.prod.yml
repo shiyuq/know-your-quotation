@@ -10,7 +10,7 @@ services:
     ports:
       - "3100:3100"
     volumes:
-      - ./loki/config.yml:/etc/loki/loki-config.yml:ro
+      - ./config-list/loki/config.yml:/etc/loki/loki-config.yml:ro
       - loki_data:/loki
     command: -config.file=/etc/loki/loki-config.yml
     networks:
@@ -20,7 +20,7 @@ services:
     image: grafana/promtail:3.0.0
     container_name: promtail
     volumes:
-      - ./promtail:/etc/promtail
+      - ./config-list/promtail:/etc/promtail
       - /var/log:/var/log
       - /var/lib/docker/containers:/var/lib/docker/containers
       - /var/run/docker.sock:/var/run/docker.sock
@@ -48,7 +48,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config-list/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"

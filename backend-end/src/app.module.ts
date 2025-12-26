@@ -13,6 +13,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import {
   ArticleModule,
   AuthModule,
+  KafkaModule,
   ProductModule,
   QuotationModule,
   TodoModule,
@@ -136,6 +137,7 @@ import { jwtConstants } from '@/constants';
     UtilModule,
     ProductModule,
     QuotationModule,
+    KafkaModule,
   ],
   controllers: [AppController],
   providers: [

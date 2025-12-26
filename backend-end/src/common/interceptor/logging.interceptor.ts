@@ -4,12 +4,15 @@ import {
   Injectable,
   NestInterceptor,
 } from '@nestjs/common';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, tap, throwError } from 'rxjs';
 
+import { KafkaProducerService } from '@/modules/global/kafka/services/kafka-producer.service';
 import { randomUUID } from 'crypto';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
+  constructor(private readonly kafkaProducer: KafkaProducerService) {}
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
     const req = ctx.getRequest<any>();
@@ -24,43 +27,104 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       tap((responseBody) => {
-        const endTime = process.hrtime.bigint();
-        const durationMs = Number(endTime - startTime) / 1_000_000;
-
-        // 脱敏请求 body
-        const safeRequestBody = this.sanitize(req.body);
-
-        // 根据业务 code 决定日志等级
-        let level: 'info' | 'warn' | 'error' = 'info';
-        const bizCode = responseBody?.code ?? 0;
-        if (bizCode !== 0 && bizCode < 50000) level = 'warn';
-        if (bizCode >= 50000) level = 'error';
-
-        // 打日志
-        req.log[level](
-          {
-            traceId,
-            userId: req.user?.sub,
-            tenantId: req.user?.tenantId,
-            request: {
-              method: req.method,
-              url: req.originalUrl,
-              query: req.query,
-              body: safeRequestBody,
-            },
-            response: {
-              statusCode: res.statusCode,
-              durationMs,
-            },
-            client: {
-              ip: req.ip,
-              userAgent: req.headers['user-agent'],
-            },
-          },
-          'HTTP request completed',
-        );
+        this.logSuccess(req, res, responseBody, startTime, traceId);
+      }),
+      catchError((err) => {
+        this.logError(req, res, err, startTime, traceId);
+        return throwError(() => err);
       }),
     );
+  }
+
+  private logSuccess(
+    req: any,
+    res: any,
+    responseBody: any,
+    startTime: bigint,
+    traceId: string,
+  ) {
+    const endTime = process.hrtime.bigint();
+    const durationMs = Number(endTime - startTime) / 1_000_000;
+
+    const safeRequestBody = this.sanitize(req.body);
+
+    let level: 'info' | 'warn' | 'error' = 'info';
+    const bizCode = responseBody?.code ?? 0;
+    if (bizCode !== 0 && bizCode < 50000) level = 'warn';
+    if (bizCode >= 50000) level = 'error';
+
+    const logInfo = {
+      traceId,
+      userId: req.user?.sub,
+      tenantId: req.user?.tenantId,
+      level,
+      type: 'success',
+      request: {
+        method: req.method,
+        url: req.originalUrl,
+        query: req.query,
+        body: safeRequestBody,
+      },
+      response: {
+        statusCode: res.statusCode,
+        durationMs,
+        // body: responseBody, // 可选：是否记录响应体
+      },
+      client: {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+      },
+    };
+
+    this.sendLogToKafka(logInfo);
+    req.log[level](logInfo, 'HTTP request completed');
+  }
+
+  private logError(
+    req: any,
+    res: any,
+    err: any,
+    startTime: bigint,
+    traceId: string,
+  ) {
+    const endTime = process.hrtime.bigint();
+    const durationMs = Number(endTime - startTime) / 1_000_000;
+
+    const safeRequestBody = this.sanitize(req.body);
+
+    const statusCode = err?.status || res?.statusCode || 500;
+    const errorMessage = err?.message || 'Unknown error';
+    const stack =
+      process.env.NODE_ENV === 'development' ? err?.stack : undefined;
+
+    const logInfo = {
+      traceId,
+      userId: req.user?.sub,
+      tenantId: req.user?.tenantId,
+      level: 'error' as const,
+      type: 'error',
+      request: {
+        method: req.method,
+        url: req.originalUrl,
+        query: req.query,
+        body: safeRequestBody,
+      },
+      error: {
+        statusCode,
+        message: errorMessage,
+        stack,
+      },
+      response: {
+        durationMs,
+      },
+      client: {
+        ip: req.ip,
+        userAgent: req.headers['user-agent'],
+      },
+    };
+
+    this.sendLogToKafka(logInfo);
+    req.log.error(logInfo, 'HTTP request failed');
   }
 
   private sanitize(obj: any) {
@@ -91,5 +155,14 @@ export class LoggingInterceptor implements NestInterceptor {
     }
 
     return clone;
+  }
+
+  private async sendLogToKafka(log: any) {
+    try {
+      await this.kafkaProducer.send('test', log, 'log'); // topic 名称可配置
+    } catch (error) {
+      // Kafka 发送失败不要影响主流程，只打印控制台
+      console.error('Failed to send log to Kafka:', error);
+    }
   }
 }

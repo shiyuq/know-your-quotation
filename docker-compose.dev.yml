@@ -17,6 +17,14 @@ services:
     ports:
       - "9092:9092"
 
+  kafka2:
+    ports:
+      - "9192:9092"
+
+  kafka3:
+    ports:
+      - "9292:9092"
+
   kafka-ui:
     ports:
       - "8081:8080"
