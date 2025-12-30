@@ -54,7 +54,6 @@ services:
     ports:
       - "8123:8123" # HTTP 接口（常用客户端、JDBC、DBeaver 等）
       - "9000:9000" # Native TCP 接口（clickhouse-client 用）
-      - "9009:9009" # HTTP 接口可选端口
     volumes:
       - clickhouse_data:/var/lib/clickhouse
     environment:

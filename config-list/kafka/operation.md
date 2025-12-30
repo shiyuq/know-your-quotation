@@ -1,3 +1,33 @@
+### 创建日志表
+```sql
+CREATE TABLE logs_db.access_logs
+(
+    `timestamp` DateTime64(3) CODEC(Delta(8), LZ4),
+    `app_name` LowCardinality(String),
+    `trace_id` String CODEC(ZSTD(1)),
+    `level` LowCardinality(String),
+    `type` LowCardinality(String),
+    `request_method` LowCardinality(String),
+    `request_url` String CODEC(ZSTD(1)),
+    `request_query` String,
+    `request_body` Nullable(String) CODEC(ZSTD(1)),
+    `response_status_code` Nullable(UInt16),
+    `response_duration_ms` Nullable(Float64),
+    `error_status_code` Nullable(UInt16),
+    `error_message` Nullable(String) CODEC(ZSTD(1)),
+    `error_stack` Nullable(String) CODEC(ZSTD(1)),
+    `user_id` Nullable(String),
+    `tenant_id` Nullable(String),
+    `client_ip` String,
+    `client_user_agent` String CODEC(ZSTD(1)),
+    `extra` Map(String, String)
+)
+ENGINE = MergeTree
+PARTITION BY toYYYYMMDD(timestamp)
+ORDER BY (level, type, timestamp, trace_id)
+SETTINGS index_granularity = 8192
+```
+
 ### 创建规则
 ```sql
 CREATE TABLE logs_db.kafka_logs_queue (
@@ -26,6 +56,8 @@ SELECT
         now64(3)
     ) AS timestamp,
 
+    JSONExtractString(raw_json, 'env') AS env,
+    JSONExtractString(raw_json, 'appName') AS app_name,
     JSONExtractString(raw_json, 'traceId') AS trace_id,
     JSONExtractString(raw_json, 'level') AS level,
     JSONExtractString(raw_json, 'type') AS type,

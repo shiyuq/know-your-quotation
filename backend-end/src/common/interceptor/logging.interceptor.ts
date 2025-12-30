@@ -6,12 +6,21 @@ import {
 } from '@nestjs/common';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 
+import { AllConfigType } from '@/config';
+import { ConfigService } from '@nestjs/config';
 import { KafkaProducerService } from '@/modules/global/kafka/services/kafka-producer.service';
 import { randomUUID } from 'crypto';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  constructor(private readonly kafkaProducer: KafkaProducerService) {}
+  constructor(
+    private readonly kafkaProducer: KafkaProducerService,
+    private readonly configService: ConfigService<AllConfigType>,
+  ) {
+    this.appInfo = this.configService.getOrThrow('app', { infer: true });
+  }
+
+  private readonly appInfo;
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -56,6 +65,8 @@ export class LoggingInterceptor implements NestInterceptor {
     if (bizCode >= 50000) level = 'error';
 
     const logInfo = {
+      env: this.appInfo.env,
+      appName: this.appInfo.serviceName,
       timestamp,
       traceId,
       userId: req.user?.sub,
@@ -102,6 +113,8 @@ export class LoggingInterceptor implements NestInterceptor {
       process.env.NODE_ENV === 'development' ? err?.stack : undefined;
 
     const logInfo = {
+      env: this.appInfo.env,
+      appName: this.appInfo.serviceName,
       timestamp,
       traceId,
       userId: req.user?.sub,
