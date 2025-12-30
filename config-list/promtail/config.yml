@@ -65,6 +65,8 @@ scrape_configs:
     pipeline_stages:
       - json:
           expressions:
+            env: env
+            appName: appName
             traceId: traceId
             userId: userId
             tenantId: tenantId
@@ -77,6 +79,8 @@ scrape_configs:
             ip: client.ip
             userAgent: client.userAgent
       - labels:
+          env:
+          appName:
           tenantId:
           url:
           method:
