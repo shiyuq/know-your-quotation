@@ -18,9 +18,11 @@ export class LoggingInterceptor implements NestInterceptor {
     private readonly configService: ConfigService<AllConfigType>,
   ) {
     this.appInfo = this.configService.getOrThrow('app', { infer: true });
+    this.kafkaInfo = this.configService.getOrThrow('kafka', { infer: true });
   }
 
   private readonly appInfo;
+  private readonly kafkaInfo;
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -178,7 +180,8 @@ export class LoggingInterceptor implements NestInterceptor {
 
   private async sendLogToKafka(log: any) {
     try {
-      await this.kafkaProducer.send('test', log, 'log'); // topic 名称可配置
+      const topic = this.kafkaInfo.topic ?? 'logs';
+      await this.kafkaProducer.send(topic, log, ''); // topic 名称可配置
     } catch (error) {
       // Kafka 发送失败不要影响主流程，只打印控制台
       console.error('Failed to send log to Kafka:', error);
