@@ -4,3 +4,4 @@ export * from './config.type';
 export { default as appConfig } from './configuraion/configuration';
 export { default as mysqlConfig } from './mysql/mysql';
 export { default as mongoConfig } from './mongo/mongo';
+export { default as kafkaConfig } from './kafka/kafka';

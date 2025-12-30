@@ -1,5 +1,11 @@
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
-import { AllConfigType, appConfig, mongoConfig, mysqlConfig } from '@/config';
+import {
+  AllConfigType,
+  appConfig,
+  kafkaConfig,
+  mongoConfig,
+  mysqlConfig,
+} from '@/config';
 import {
   AllExceptionsFilter,
   AuthGuard,
@@ -53,7 +59,7 @@ import { jwtConstants } from '@/constants';
         process.env.NODE_ENV === 'production'
           ? []
           : [`.env.${process.env.NODE_ENV || 'development'}`],
-      load: [appConfig, mysqlConfig, mongoConfig],
+      load: [appConfig, mysqlConfig, mongoConfig, kafkaConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

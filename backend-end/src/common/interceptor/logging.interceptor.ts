@@ -24,13 +24,14 @@ export class LoggingInterceptor implements NestInterceptor {
 
     // 开始计时
     const startTime = process.hrtime.bigint();
+    const timestamp = new Date().toISOString();
 
     return next.handle().pipe(
       tap((responseBody) => {
-        this.logSuccess(req, res, responseBody, startTime, traceId);
+        this.logSuccess(req, res, responseBody, startTime, traceId, timestamp);
       }),
       catchError((err) => {
-        this.logError(req, res, err, startTime, traceId);
+        this.logError(req, res, err, startTime, traceId, timestamp);
         return throwError(() => err);
       }),
     );
@@ -42,6 +43,7 @@ export class LoggingInterceptor implements NestInterceptor {
     responseBody: any,
     startTime: bigint,
     traceId: string,
+    timestamp: string,
   ) {
     const endTime = process.hrtime.bigint();
     const durationMs = Number(endTime - startTime) / 1_000_000;
@@ -54,6 +56,7 @@ export class LoggingInterceptor implements NestInterceptor {
     if (bizCode >= 50000) level = 'error';
 
     const logInfo = {
+      timestamp,
       traceId,
       userId: req.user?.sub,
       tenantId: req.user?.tenantId,
@@ -62,7 +65,7 @@ export class LoggingInterceptor implements NestInterceptor {
       request: {
         method: req.method,
         url: req.originalUrl,
-        query: req.query,
+        query: JSON.stringify(req.query),
         body: safeRequestBody,
       },
       response: {
@@ -86,6 +89,7 @@ export class LoggingInterceptor implements NestInterceptor {
     err: any,
     startTime: bigint,
     traceId: string,
+    timestamp: string,
   ) {
     const endTime = process.hrtime.bigint();
     const durationMs = Number(endTime - startTime) / 1_000_000;
@@ -98,6 +102,7 @@ export class LoggingInterceptor implements NestInterceptor {
       process.env.NODE_ENV === 'development' ? err?.stack : undefined;
 
     const logInfo = {
+      timestamp,
       traceId,
       userId: req.user?.sub,
       tenantId: req.user?.tenantId,
@@ -106,7 +111,7 @@ export class LoggingInterceptor implements NestInterceptor {
       request: {
         method: req.method,
         url: req.originalUrl,
-        query: req.query,
+        query: JSON.stringify(req.query),
         body: safeRequestBody,
       },
       error: {
@@ -128,7 +133,9 @@ export class LoggingInterceptor implements NestInterceptor {
   }
 
   private sanitize(obj: any) {
-    if (!obj || typeof obj !== 'object') return obj;
+    if (!obj || typeof obj !== 'object') {
+      return obj === undefined ? '' : String(obj);
+    }
 
     const clone = { ...obj };
     const blacklist = [
@@ -148,13 +155,12 @@ export class LoggingInterceptor implements NestInterceptor {
 
     // 可选裁剪，防止大对象
     try {
-      const str = JSON.stringify(clone);
+      let str = JSON.stringify(clone);
       if (str.length > 2000) return str.slice(0, 2000) + '...[TRUNCATED]';
+      return str;
     } catch (e) {
       return '[UNSERIALIZABLE]';
     }
-
-    return clone;
   }
 
   private async sendLogToKafka(log: any) {

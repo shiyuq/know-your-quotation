@@ -1,9 +1,6 @@
 # docker-compose.yml
-
 volumes:
-  kafka_data1: # 用于存储 Kafka 数据的卷
-  kafka_data2: # 用于存储 Kafka 数据的卷
-  kafka_data3: # 用于存储 Kafka 数据的卷
+  clickhouse_data: # 声明命名卷
 
 services:
   mysql:
@@ -50,102 +47,31 @@ services:
       timeout: 5s
       retries: 5
 
-  kafka1:
-    image: apache/kafka:latest
-    container_name: kafka1
-    hostname: kafka1
-    environment:
-      KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: broker,controller # 混合模式（生产可分离）
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093 # 所有控制器
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka1:19092,EXTERNAL://localhost:9092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3 # 多节点支持 RF=3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
-      KAFKA_JVM_PERFORMANCE_OPTS: "-Xms512m -Xmx1g -server -XX:+UseG1GC"
-
-      # 共享 CLUSTER_ID（必须一致，避免重新格式化）
-      CLUSTER_ID: "multi-kraft-cluster-2025"
-
-      # 日志目录（持久化）
-      KAFKA_LOG_DIRS: /var/lib/kafka/data
-
+  clickhouse:
+    image: clickhouse/clickhouse-server:25.12
+    container_name: quotation_clickhouse
+    hostname: quotation_clickhouse
+    ports:
+      - "8123:8123" # HTTP 接口（常用客户端、JDBC、DBeaver 等）
+      - "9000:9000" # Native TCP 接口（clickhouse-client 用）
+      - "9009:9009" # HTTP 接口可选端口
     volumes:
-      - kafka_data1:/var/lib/kafka/data
-
-  kafka2:
-    image: apache/kafka:latest
-    container_name: kafka2
-    hostname: kafka2
+      - clickhouse_data:/var/lib/clickhouse
     environment:
-      KAFKA_NODE_ID: 2
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka2:19092,EXTERNAL://localhost:9192
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
-      KAFKA_JVM_PERFORMANCE_OPTS: "-Xms512m -Xmx1g -server -XX:+UseG1GC"
-
-      CLUSTER_ID: "multi-kraft-cluster-2025"
-      KAFKA_LOG_DIRS: /var/lib/kafka/data
-
-    volumes:
-      - kafka_data2:/var/lib/kafka/data
-
-  kafka3:
-    image: apache/kafka:latest
-    container_name: kafka3
-    hostname: kafka3
-    environment:
-      KAFKA_NODE_ID: 3
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka1:9093,2@kafka2:9093,3@kafka3:9093
-      KAFKA_LISTENERS: INTERNAL://0.0.0.0:19092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka3:19092,EXTERNAL://localhost:9292
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
-
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-
-      KAFKA_JVM_PERFORMANCE_OPTS: "-Xms512m -Xmx1g -server -XX:+UseG1GC"
-
-      CLUSTER_ID: "multi-kraft-cluster-2025"
-      KAFKA_LOG_DIRS: /var/lib/kafka/data
-
-    volumes:
-      - kafka_data3:/var/lib/kafka/data
-
-  kafka-ui:
-    image: ghcr.io/kafbat/kafka-ui:latest
-    container_name: kafka-ui
-    environment:
-      # 静态预配置：UI 启动后自动连接，无需手动添加/validate/submit
-      KAFKA_CLUSTERS_0_NAME: multi-kafka
-      # bootstrap 用所有 broker（推荐，提高可用性）
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka1:19092,kafka2:19092,kafka3:19092
-    depends_on:
-      - kafka1
-      - kafka2
-      - kafka3
+      - CLICKHOUSE_DB=logs_db # 默认创建数据库
+      - CLICKHOUSE_USER=admin
+      - CLICKHOUSE_PASSWORD=shiyuq # 建议改成强密码
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_net
 
 networks:
   app_net:
