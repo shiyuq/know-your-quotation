@@ -42,6 +42,7 @@ export class QuotationService {
     const { customerId, products } = dto;
     const skus = await this.skuRepository.find({
       where: { tenantId, skuCode: In(_.map(products, (i) => i.skuCode)) },
+      order: { order: 'ASC' },
     });
     const [productList, imageList, tenantInfo] = await Promise.all([
       this.productRepository.find({
