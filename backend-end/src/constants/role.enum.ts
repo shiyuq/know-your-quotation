@@ -22,7 +22,7 @@ export enum PermissonEnum {
 }
 
 export const RolePermissions: Record<GlobalRole, string[]> = {
-  [GlobalRole.PLATFORM_ADMIN]: [],
+  [GlobalRole.PLATFORM_ADMIN]: [PermissonEnum.authSignIn],
   [GlobalRole.BOSS]: [
     PermissonEnum.authSignIn,
     PermissonEnum.leadinProduct,

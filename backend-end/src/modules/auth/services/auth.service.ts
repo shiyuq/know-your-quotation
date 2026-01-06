@@ -35,11 +35,20 @@ export class AuthService {
     if (!this.utilService.checkIsValidPwd(pass, user.salt, user.password)) {
       return BusinessErrorHelper.User.userPwdError();
     }
-    const tenantInfo = await this.tenantRepository.findOneBy({
-      id: user.tenantId,
-    });
-    if (_.isEmpty(tenantInfo)) {
+    if (!user.tenantId && user.role !== GlobalRole.PLATFORM_ADMIN) {
       return BusinessErrorHelper.User.tenantNotExist();
+    }
+    let tenantInfo: TenantEntity | { name: string };
+    if (user.tenantId) {
+      const tenant = await this.tenantRepository.findOneBy({
+        id: user.tenantId,
+      });
+      if (_.isEmpty(tenant)) {
+        return BusinessErrorHelper.User.tenantNotExist();
+      }
+      tenantInfo = tenant!;
+    } else {
+      tenantInfo = { name: '平台管理员' };
     }
     const payload = {
       sub: user.id,

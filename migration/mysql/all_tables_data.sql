@@ -209,7 +209,7 @@ CREATE TABLE `user` (
   `create_time` datetime NOT NULL DEFAULT (now()),
   `update_time` datetime NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_tenant_user` (`username`) USING BTREE,
+  UNIQUE KEY `unique_tenant_user` (`username`, 'tenant_id') USING BTREE,
   KEY `idx_tenant` (`tenant_id`),
   KEY `status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
