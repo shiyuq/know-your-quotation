@@ -76,8 +76,8 @@ const {
       </el-form-item>
     </el-form>
 
-    <div class="flex-1 px-3 py-3 mt-2 mb-8 bg-white overflow-auto">
-      <div v-if="quotation.length">
+    <div class="bg-bg_color mt-2">
+      <div v-if="quotation.length" class="flex-1 px-3 py-3 overflow-auto">
         <el-collapse expand-icon-position="right" accordion>
           <el-collapse-item
             v-for="item in quotation"
