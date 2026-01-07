@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="/front-end/public/logo.png" width="400" />
+  <img src="/front-end/public/logo.png" width="200" />
   <h3 align="center">KNOW YOUR QUOTATION</h3>
 </p>
 
