@@ -1,6 +1,6 @@
 <p align="center">
   <img src="/front-end/public/logo.png" width="200" />
-  <p align="center">KNOW YOUR QUOTATION</p>
+  <h1 align="center">KNOW YOUR QUOTATION</h1>
 </p>
 
 ## 👋 项目介绍
