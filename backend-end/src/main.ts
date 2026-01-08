@@ -9,6 +9,7 @@ import { NestFactory } from '@nestjs/core';
 import { StructuredLogger, HttpLoggerMiddleware } from '@/common';
 import helmet from 'helmet';
 import { Logger } from 'nestjs-pino';
+import compression from 'compression';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -78,6 +79,7 @@ async function bootstrap() {
   // app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   app.useLogger(app.get(Logger));
+  app.use(compression());
 
   const configService = app.get(ConfigService<AllConfigType>);
   await app.listen(configService.getOrThrow('app.port', { infer: true }));

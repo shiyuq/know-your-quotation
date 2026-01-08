@@ -36,6 +36,7 @@ import {
 
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { AppController } from './app.controller';
+import { CacheModule } from '@nestjs/cache-manager';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
@@ -135,6 +136,9 @@ import { jwtConstants } from '@/constants';
           },
         };
       },
+    }),
+    CacheModule.register({
+      isGlobal: true,
     }),
     TodoModule,
     AuthModule,
