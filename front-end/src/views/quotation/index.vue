@@ -76,8 +76,8 @@ const {
       </el-form-item>
     </el-form>
 
-    <div class="bg-bg_color mt-2">
-      <div v-if="quotation.length" class="flex-1 px-3 py-3 overflow-auto">
+    <div class="content bg-bg_color flex-1 mt-2 overflow-auto">
+      <div v-if="quotation.length" class="p-4">
         <el-collapse expand-icon-position="right" accordion>
           <el-collapse-item
             v-for="item in quotation"
@@ -138,7 +138,9 @@ const {
           </el-collapse-item>
         </el-collapse>
       </div>
-      <div v-else><el-empty :image-size="200" /></div>
+      <div v-else class="flex justify-center items-center h-full">
+        <el-empty :image-size="200" />
+      </div>
     </div>
   </div>
 </template>
@@ -148,6 +150,14 @@ const {
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  max-height: calc(100vh - 225px); /* 根据实际布局调整这个值 */
+  min-height: 0;
 }
 
 .search-form {
