@@ -37,6 +37,9 @@ import {
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { AppController } from './app.controller';
 import { CacheModule } from '@nestjs/cache-manager';
+import KeyvRedis from '@keyv/redis';
+import { Keyv } from 'keyv';
+import { CacheableMemory } from 'cacheable';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
 import { LoggerModule } from 'nestjs-pino';
@@ -137,8 +140,18 @@ import { jwtConstants } from '@/constants';
         };
       },
     }),
-    CacheModule.register({
+    CacheModule.registerAsync({
       isGlobal: true,
+      useFactory: async () => {
+        return {
+          stores: [
+            new Keyv({
+              store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }),
+            }),
+            new KeyvRedis('redis://localhost:6380'),
+          ],
+        };
+      },
     }),
     TodoModule,
     AuthModule,
