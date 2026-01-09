@@ -9,6 +9,7 @@ import {
 import {
   AllExceptionsFilter,
   AuthGuard,
+  CacheInterceptor,
   HttpLoggerMiddleware,
   LoggingInterceptor,
   MetricsInterceptor,
@@ -20,6 +21,7 @@ import {
   ArticleModule,
   AuthModule,
   KafkaModule,
+  LocalCacheModule,
   ProductModule,
   QuotationModule,
   TodoModule,
@@ -37,11 +39,11 @@ import {
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { AppController } from './app.controller';
 import { CacheModule } from '@nestjs/cache-manager';
-import KeyvRedis from '@keyv/redis';
-import { Keyv } from 'keyv';
 import { CacheableMemory } from 'cacheable';
 import { GraphQLModule } from '@nestjs/graphql';
 import { JwtModule } from '@nestjs/jwt';
+import { Keyv } from 'keyv';
+import KeyvRedis from '@keyv/redis';
 import { LoggerModule } from 'nestjs-pino';
 import { MongooseModule } from '@nestjs/mongoose';
 // import { DevtoolsModule } from '@nestjs/devtools-integration';
@@ -148,7 +150,6 @@ import { jwtConstants } from '@/constants';
             new Keyv({
               store: new CacheableMemory({ ttl: 60000, lruSize: 5000 }),
             }),
-            new KeyvRedis('redis://localhost:6380'),
           ],
         };
       },
@@ -161,6 +162,7 @@ import { jwtConstants } from '@/constants';
     ProductModule,
     QuotationModule,
     KafkaModule,
+    LocalCacheModule,
   ],
   controllers: [AppController],
   providers: [
@@ -186,6 +188,10 @@ import { jwtConstants } from '@/constants';
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
     },
     {
       provide: APP_INTERCEPTOR,

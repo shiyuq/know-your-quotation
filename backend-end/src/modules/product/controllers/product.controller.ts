@@ -10,7 +10,7 @@ import {
   FileTypeValidator,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Permisson, BusinessErrorHelper } from '@/common';
+import { Permisson, Cached, BusinessErrorHelper } from '@/common';
 import { PermissonEnum, GlobalRole } from '@/constants';
 import { ProductService } from '../services/product.service';
 import { ListProductSkuDto } from '../dto/list-product-sku.dto';
@@ -59,6 +59,7 @@ export class ProductController {
 
   @Post('list')
   @Permisson(PermissonEnum.listProduct)
+  @Cached()
   listProduct(@Request() req: any, @Body() dto: ListProductDto) {
     return this.productService.listProduct(req.user, dto);
   }
