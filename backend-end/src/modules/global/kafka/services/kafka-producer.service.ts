@@ -15,12 +15,12 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleInit() {
     await this.kafkaClient.connect();
-    console.log('Kafka Producer connected (NestJS official)');
+    // console.log('Kafka Producer connected (NestJS official)');
   }
 
   async onModuleDestroy() {
     await this.kafkaClient.close();
-    console.log('Kafka Producer disconnected');
+    // console.log('Kafka Producer disconnected');
   }
 
   /**

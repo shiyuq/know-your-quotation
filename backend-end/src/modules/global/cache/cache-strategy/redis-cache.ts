@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-
+import { AllConfigType } from '@/config/config.type';
 import { CacheStrategy } from '../interface';
+import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 import { Keyv } from 'keyv';
 import KeyvRedis from '@keyv/redis';
 
@@ -8,9 +9,10 @@ import KeyvRedis from '@keyv/redis';
 export class RedisCacheStrategy implements CacheStrategy {
   private readonly keyv: Keyv;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService<AllConfigType>) {
+    const redis = this.configService.getOrThrow('redis', { infer: true });
     this.keyv = new Keyv({
-      store: new KeyvRedis('redis://localhost:6380'),
+      store: new KeyvRedis(`redis://${redis.host}:${redis.port}`),
       namespace: 'cache',
     });
   }

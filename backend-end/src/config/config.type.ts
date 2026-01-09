@@ -4,10 +4,12 @@ import { AppConfig } from './configuraion/configuration.type';
 import { KafkaConfig } from './kafka/kafka.type';
 import { MongoConfig } from './mongo/mongo.type';
 import { MysqlConfig } from './mysql/mysql.type';
+import { RedisConfig } from './redis/redis.type';
 
 export type AllConfigType = {
   app: AppConfig;
   mysql: MysqlConfig;
   mongo: MongoConfig;
   kafka: KafkaConfig;
+  redis: RedisConfig;
 };

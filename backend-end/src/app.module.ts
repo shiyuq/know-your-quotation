@@ -5,6 +5,7 @@ import {
   kafkaConfig,
   mongoConfig,
   mysqlConfig,
+  redisConfig,
 } from '@/config';
 import {
   AllExceptionsFilter,
@@ -65,7 +66,7 @@ import { jwtConstants } from '@/constants';
         process.env.NODE_ENV === 'production'
           ? []
           : [`.env.${process.env.NODE_ENV || 'development'}`],
-      load: [appConfig, mysqlConfig, mongoConfig, kafkaConfig],
+      load: [appConfig, mysqlConfig, mongoConfig, kafkaConfig, redisConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

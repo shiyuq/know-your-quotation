@@ -8,7 +8,7 @@ import { from, lastValueFrom } from 'rxjs';
 
 import { CacheService } from '@/modules/global/cache/cache-service';
 import { CacheType } from '@/modules/global/cache/cache-strategy-factory';
-import { Cached } from '@/common/decorator/cache.decorator';
+import { CachedDecorator } from '@/common/decorator/cache.decorator';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
@@ -28,8 +28,8 @@ export class CacheInterceptor implements NestInterceptor {
 
     // 方法优先，其次类级别
     const options =
-      this.reflector.get(Cached, handler) ??
-      this.reflector.get(Cached, targetClass);
+      this.reflector.get(CachedDecorator, handler) ??
+      this.reflector.get(CachedDecorator, targetClass);
 
     if (!options) {
       return next.handle();
@@ -47,9 +47,8 @@ export class CacheInterceptor implements NestInterceptor {
 
     const cacheKey =
       typeof key === 'function'
-        ? key([safeArgs])
-        : (key ??
-          `${targetClass.name}:${handler.name}:${JSON.stringify(safeArgs)}`);
+        ? key(safeArgs)
+        : `${targetClass.name}:${handler.name}:${key}`;
 
     return from(
       this.cacheService.getOrSet(cacheKey, type, ttl, () =>

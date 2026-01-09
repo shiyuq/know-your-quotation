@@ -4,7 +4,11 @@ import { Reflector } from '@nestjs/core';
 interface CacheOptions {
   type?: CacheType;
   ttl?: number;
-  key?: string | ((args: any[]) => string);
+  key: string | ((args: any) => string);
 }
 
-export const Cached = Reflector.createDecorator<CacheOptions>();
+export const CachedDecorator = Reflector.createDecorator<CacheOptions>();
+
+export function Cached(options: CacheOptions): MethodDecorator {
+  return CachedDecorator(options);
+}
