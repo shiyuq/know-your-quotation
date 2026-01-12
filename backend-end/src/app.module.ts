@@ -25,6 +25,7 @@ import {
   LocalCacheModule,
   ProductModule,
   QuotationModule,
+  TenantModule,
   TodoModule,
   UsersModule,
   UtilModule,
@@ -73,12 +74,14 @@ import { jwtConstants } from '@/constants';
       inject: [ConfigService],
       useFactory: (configService: ConfigService<AllConfigType>) => {
         const mysql = configService.getOrThrow('mysql', { infer: true });
+        const app = configService.getOrThrow('app', { infer: true });
         return {
           ...mysql,
           type: 'mysql',
           // entities: [__dirname + '/**/*.entity{.ts,.js}'],
           autoLoadEntities: true,
           synchronize: false,
+          logging: app.env === 'development' ? ['query', 'error'] : [],
         };
       },
     }),
@@ -164,6 +167,7 @@ import { jwtConstants } from '@/constants';
     QuotationModule,
     KafkaModule,
     LocalCacheModule,
+    TenantModule,
   ],
   controllers: [AppController],
   providers: [
@@ -179,6 +183,7 @@ import { jwtConstants } from '@/constants';
           whitelist: true,
           forbidNonWhitelisted: false,
           disableErrorMessages: false,
+          skipMissingProperties: true,
         });
       },
     },

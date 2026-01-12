@@ -11,7 +11,12 @@ export enum GlobalRole {
 
 export enum PermissonEnum {
   authSignIn = 'auth:signIn',
-  authRegisterTenant = 'auth:registerTenant',
+  registerTenant = 'tenant:register',
+  listTenant = 'tenant:list',
+  detailTenant = 'tenant:detail',
+  deleteTenant = 'tenant:delete',
+  enableTenant = 'tenant:enable',
+  updateTenant = 'tenant:update',
   leadinProduct = 'leadin:product',
   listProduct = 'list:product',
   listSku = 'list:sku',
@@ -22,7 +27,15 @@ export enum PermissonEnum {
 }
 
 export const RolePermissions: Record<GlobalRole, string[]> = {
-  [GlobalRole.PLATFORM_ADMIN]: [PermissonEnum.authSignIn],
+  [GlobalRole.PLATFORM_ADMIN]: [
+    PermissonEnum.authSignIn,
+    PermissonEnum.registerTenant,
+    PermissonEnum.listTenant,
+    PermissonEnum.detailTenant,
+    PermissonEnum.deleteTenant,
+    PermissonEnum.enableTenant,
+    PermissonEnum.updateTenant,
+  ],
   [GlobalRole.BOSS]: [
     PermissonEnum.authSignIn,
     PermissonEnum.leadinProduct,

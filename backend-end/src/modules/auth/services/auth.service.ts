@@ -6,7 +6,6 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository, DataSource } from 'typeorm';
 import { UserEntity, TenantEntity } from '@/database/entities';
-import { CreateAuthDto } from '../dto/create-auth.dto';
 import { UtilService } from '@/modules/global/util/services/util.service';
 
 @Injectable()
@@ -65,24 +64,5 @@ export class AuthService {
       tenantName: tenantInfo.name,
       role: user.role,
     };
-  }
-
-  async registerTenant(createAuthDto: CreateAuthDto): Promise<boolean> {
-    const { name, username, initPwd } = createAuthDto;
-    const tenant = this.tenantRepository.create({ name });
-    const result = await this.dataSource.transaction(async (manager) => {
-      const tenantRes = await manager.save(tenant);
-      const { salt, hashedPwd } = this.utilService.generatePwd(initPwd);
-      const user = this.userRepository.create({
-        username,
-        tenantId: tenantRes.id,
-        password: hashedPwd,
-        salt,
-        role: GlobalRole.BOSS,
-      });
-      await manager.save(user);
-      return true;
-    });
-    return result;
   }
 }

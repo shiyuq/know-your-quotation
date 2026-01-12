@@ -53,6 +53,11 @@ export class TenantEntity {
   })
   accountNo: string;
 
+  @Column({
+    name: 'valid',
+  })
+  valid: boolean;
+
   @Transform(({ value }) => moment(value).format('YYYY-MM-DD HH:mm:ss'), {
     toPlainOnly: true,
   })

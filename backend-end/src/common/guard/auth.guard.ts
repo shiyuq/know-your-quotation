@@ -54,13 +54,22 @@ export class AuthGuard implements CanActivate {
 
     // 如果是平台管理员，直接放行
     if (user.role === GlobalRole.PLATFORM_ADMIN) {
-      if (request.url === '/product/leadin') {
-        return true;
-      }
-      if (!request.body?.tenantId) {
-        return false;
-      }
-      request.user.tenantId = request.body.tenantId;
+      // if (request.url === '/product/leadin') {
+      //   return true;
+      // }
+      // if (!request.body?.tenantId) {
+      //   return false;
+      // }
+      // request.user.tenantId = request.body.tenantId;
+
+      /**
+       * TODO: 待完成的任务
+       * 1. 这里计划让平台管理员选择需要操作的租户，然后使用 redis 存储正在操作的租户
+       * 2. 操作租户有时间限制，超过时间后，需要重新选择租户
+       * 3. 前端通过 header 中的 tenant-id 来指定操作的租户
+       * 4. 后续这里要做的是，在每个需要操作租户的接口中，检查 header 中的 tenant-id 是否与正在操作的租户一致
+       * 5. 组装后续的请求参数，一个是自己的身份，我是谁+我的身份，然后我正在操作谁，既可以操作具体租户，又可以知道是谁操作记录操作日志
+       */
       return true;
     }
 

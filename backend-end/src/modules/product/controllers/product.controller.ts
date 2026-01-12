@@ -59,9 +59,9 @@ export class ProductController {
 
   @Post('list')
   @Permisson(PermissonEnum.listProduct)
-  @Cached({
-    key: ({ body }) => `listProduct:${body.productNo}`,
-  })
+  // @Cached({
+  //   key: ({ body }) => `listProduct:${body.productNo}`,
+  // })
   listProduct(@Request() req: any, @Body() dto: ListProductDto) {
     return this.productService.listProduct(req.user, dto);
   }

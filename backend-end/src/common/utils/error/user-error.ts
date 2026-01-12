@@ -17,4 +17,8 @@ export class UserErrorHelper {
   static tenantNotExist(): never {
     throw new BusinessException(ErrorCodeEnum.TENANT_NOT_EXIST, '租户不存在');
   }
+
+  static tenantExist(): never {
+    throw new BusinessException(ErrorCodeEnum.TENANT_EXIST, '租户已存在');
+  }
 }
