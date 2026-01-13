@@ -1,7 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 
 import { DetailTenantDto } from './detail-tenant.dto';
-import { Expose } from 'class-transformer';
 
 export class UpdateTenantDto extends DetailTenantDto {
   @IsString()

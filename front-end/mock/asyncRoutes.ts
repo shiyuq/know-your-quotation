@@ -74,6 +74,25 @@ const autoImportRouter = {
   ]
 };
 
+const tenantRouter = {
+  path: "/tenant",
+  meta: {
+    title: "租户管理",
+    icon: "ep:user",
+    rank: 13
+  },
+  children: [
+    {
+      path: "/tenant/index",
+      name: "Tenant",
+      meta: {
+        title: "租户管理",
+        roles: ["platform_admin"]
+      }
+    }
+  ]
+};
+
 const quotationRouter = {
   path: "/quotation",
   meta: {
@@ -100,7 +119,7 @@ export default defineFakeRoute([
     response: () => {
       return {
         status: 200,
-        data: [autoImportRouter, quotationRouter]
+        data: [autoImportRouter, quotationRouter, tenantRouter]
       };
     }
   }

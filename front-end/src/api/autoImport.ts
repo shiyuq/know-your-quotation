@@ -50,3 +50,27 @@ export const deleteSku = (data?: object) => {
 export const offlineSku = (data?: object) => {
   return http.request<Result>("post", "/api/product/offline-sku", { data });
 };
+
+export const listTenant = (data?: object) => {
+  return http.request<ResultTable>("post", "/api/tenant/list", { data });
+};
+
+export const registerTenant = (data?: object) => {
+  return http.request<Result>("post", "/api/tenant/register", { data });
+};
+
+export const getTenantDetail = (data?: object) => {
+  return http.request<Result>("post", "/api/tenant/detail", { data });
+};
+
+export const deleteTenant = (data?: object) => {
+  return http.request<Result>("post", "/api/tenant/delete", { data });
+};
+
+export const enableTenant = (data?: object) => {
+  return http.request<Result>("post", "/api/tenant/enable", { data });
+};
+
+export const updateTenant = (data?: object) => {
+  return http.request<Result>("post", "/api/tenant/update", { data });
+};

@@ -93,6 +93,7 @@ export class TenantService {
       'tenant.id AS id',
       'tenant.name AS name',
       'tenant.tel AS tel',
+      'tenant.valid AS valid',
       'tenant.createTime AS createTime',
       'tenant.updateTime AS updateTime',
     ]).orderBy('tenant.createTime', 'DESC');
@@ -119,7 +120,7 @@ export class TenantService {
     ]);
 
     // 6️⃣ 返回 DTO
-    return { list, total };
+    return { list, total, currentPage: pageIndex, pageSize };
   }
 
   async detailTenant(detailTenantDto: DetailTenantDto) {

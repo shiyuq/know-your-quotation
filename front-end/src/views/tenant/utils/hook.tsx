@@ -1,46 +1,34 @@
 import dayjs from "dayjs";
-import { computed } from "vue";
-import editForm from "./form.vue";
-import uploadForm from "./upload-form.vue";
-import { handleTree } from "@/utils/tree";
+import editForm from "../form.vue";
+import editFormV2 from "../edit-form.vue";
 import { message } from "@/utils/message";
-import { usePublicHooks } from "@/utils/util";
 import { ElMessageBox } from "element-plus";
+import { usePublicHooks } from "@/utils/util";
 import { transformI18n } from "@/plugins/i18n";
 import { addDialog } from "@/components/ReDialog";
-import type { FormItemProps, FileUploadProps } from "./types";
+import type { FormItemProps, EditFormItemProps } from "../utils/types";
 import type { PaginationProps } from "@pureadmin/table";
+import { deviceDetection } from "@pureadmin/utils";
 import {
-  getKeyList,
-  deviceDetection,
-  useDark,
-  createFormData
-} from "@pureadmin/utils";
-
-import {
-  getProductList,
-  importProduct,
-  deleteSku,
-  offlineSku
+  listTenant,
+  registerTenant,
+  getTenantDetail,
+  deleteTenant,
+  enableTenant,
+  updateTenant
 } from "@/api/autoImport";
-import { type Ref, reactive, ref, onMounted, h, toRaw, watch } from "vue";
+import { type Ref, reactive, ref, onMounted, h, toRaw } from "vue";
 
 export function useRole(treeRef: Ref) {
   const form = reactive({
-    productNo: "",
-    skuCode: "",
-    status: undefined
+    companyName: "",
+    valid: undefined
   });
   const curRow = ref();
   const formRef = ref();
-  const uploadFileRef = ref();
   const dataList = ref([]);
-  const treeIds = ref([]);
-  const treeData = ref([]);
   const isShow = ref(false);
   const loading = ref(true);
-  const isLinkage = ref(false);
-  const treeSearchValue = ref();
   const switchLoadMap = ref({});
   const isExpandAll = ref(false);
   const isSelectAll = ref(false);
@@ -58,26 +46,14 @@ export function useRole(treeRef: Ref) {
   });
   const columns: TableColumnList = [
     {
-      label: "产品图",
-      slot: "imageOperation"
+      label: "租户名称",
+      prop: "name",
+      width: 400
     },
     {
-      label: "产品型号",
-      prop: "productName"
-    },
-    {
-      label: "产品描述",
-      prop: "productDesc"
-    },
-    {
-      label: "产品规格",
-      prop: "skuCode"
-    },
-    {
-      label: "规格描述",
-      prop: "desc",
-      minWidth: 100,
-      showOverflowTooltip: true
+      label: "联系方式",
+      prop: "tel",
+      width: 300
     },
     {
       label: "状态",
@@ -85,58 +61,46 @@ export function useRole(treeRef: Ref) {
         <el-switch
           size={scope.props.size === "small" ? "small" : "default"}
           loading={switchLoadMap.value[scope.index]?.loading}
-          v-model={scope.row.status}
+          v-model={scope.row.valid}
           active-value={1}
           inactive-value={0}
-          active-text="在售"
-          inactive-text="下架"
+          active-text="已启用"
+          inactive-text="已停用"
           inline-prompt
           style={switchStyle.value}
           onChange={() => onChange(scope as any)}
         />
       ),
-      minWidth: 50
-    },
-    {
-      label: "单价",
-      prop: "unitPrice",
-      minWidth: 50
-    },
-    {
-      label: "重量",
-      prop: "weight",
-      minWidth: 50
+      minWidth: 90
     },
     {
       label: "创建时间",
       prop: "createTime",
-      minWidth: 100,
+      minWidth: 160,
       formatter: ({ createTime }) =>
         dayjs(createTime).format("YYYY-MM-DD HH:mm:ss")
     },
     {
+      label: "更新时间",
+      prop: "updateTime",
+      minWidth: 160,
+      formatter: ({ updateTime }) =>
+        dayjs(updateTime).format("YYYY-MM-DD HH:mm:ss")
+    },
+    {
       label: "操作",
       fixed: "right",
-      width: 160,
+      width: 210,
       slot: "operation"
     }
   ];
-  // const buttonClass = computed(() => {
-  //   return [
-  //     "h-[20px]!",
-  //     "reset-margin",
-  //     "text-gray-500!",
-  //     "dark:text-white!",
-  //     "dark:hover:text-primary!"
-  //   ];
-  // });
 
   function onChange({ row, index }) {
     ElMessageBox.confirm(
       `确认要<strong>${
-        row.status === 0 ? "下架" : "上架"
+        row.valid === 0 ? "停用" : "启用"
       }</strong><strong style='color:var(--el-color-primary)'>${
-        row.skuCode
+        row.name
       }</strong>吗?`,
       "系统提示",
       {
@@ -155,28 +119,37 @@ export function useRole(treeRef: Ref) {
             loading: true
           }
         );
-        offlineSku({ skuCode: row.skuCode }).then(() => {
-          switchLoadMap.value[index] = Object.assign(
-            {},
-            switchLoadMap.value[index],
-            {
-              loading: false
-            }
-          );
-          message(`已${row.status === 0 ? "下架" : "上架"}${row.skuCode}`, {
-            type: "success"
+        if (row.valid === 0) {
+          deleteTenant({ id: row.id }).then(() => {
+            switchLoadMap.value[index] = Object.assign(
+              {},
+              switchLoadMap.value[index],
+              {
+                loading: false
+              }
+            );
+            message(`已${row.valid === 0 ? "停用" : "启用"}${row.name}`, {
+              type: "success"
+            });
           });
-        });
+        } else {
+          enableTenant({ id: row.id }).then(() => {
+            switchLoadMap.value[index] = Object.assign(
+              {},
+              switchLoadMap.value[index],
+              {
+                loading: false
+              }
+            );
+            message(`已${row.valid === 0 ? "停用" : "启用"}${row.name}`, {
+              type: "success"
+            });
+          });
+        }
       })
       .catch(() => {
-        row.status === 0 ? (row.status = 1) : (row.status = 0);
+        row.valid === 0 ? (row.valid = 1) : (row.valid = 0);
       });
-  }
-
-  async function handleDelete(row) {
-    await deleteSku({ skuCode: row.skuCode });
-    message(`您删除了规格：${row.skuCode}`, { type: "success" });
-    onSearch();
   }
 
   function handleSizeChange(val: number) {
@@ -186,7 +159,6 @@ export function useRole(treeRef: Ref) {
   }
 
   function handleCurrentChange(val: number) {
-    // 分页查询
     pagination.currentPage = val;
     onSearch();
   }
@@ -197,7 +169,7 @@ export function useRole(treeRef: Ref) {
 
   async function onSearch() {
     loading.value = true;
-    const data = await getProductList({
+    const data = await listTenant({
       ...toRaw(form),
       pageSize: pagination.pageSize,
       pageIndex: pagination.currentPage
@@ -220,25 +192,25 @@ export function useRole(treeRef: Ref) {
 
   function openDialog(title = "新增", row?: FormItemProps) {
     addDialog({
-      title: title,
+      title: `${title}租户`,
       props: {
         formInline: {
-          name: row?.name ?? "",
-          code: row?.code ?? "",
-          remark: row?.remark ?? ""
+          companyName: "",
+          email: "",
+          initPwd: ""
         }
       },
       width: "40%",
       draggable: true,
       fullscreen: deviceDetection(),
-      fullscreenIcon: false,
+      fullscreenIcon: true,
       closeOnClickModal: false,
       contentRenderer: () => h(editForm, { ref: formRef, formInline: null }),
       beforeSure: (done, { options }) => {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
-          message(`您${title}了角色名称为${curData.name}的这条数据`, {
+          message(`您${title}了名称为${curData.companyName}的租户`, {
             type: "success"
           });
           done(); // 关闭弹框
@@ -246,41 +218,46 @@ export function useRole(treeRef: Ref) {
         }
         FormRef.validate(valid => {
           if (valid) {
-            console.log("curData", curData);
-            // 表单规则校验通过
-            if (title === "新增") {
-              // 实际开发先调用新增接口，再进行下面操作
-              chores();
-            } else {
-              // 实际开发先调用修改接口，再进行下面操作
-              chores();
-            }
+            registerTenant(curData).then(() => chores());
           }
         });
       }
     });
   }
 
-  function openFileUploadDialog(title = "导入产品") {
+  function getDetail(row) {
+    getTenantDetail({ id: row.id }).then(data => {
+      openEditDialog(data);
+    });
+  }
+
+  function openEditDialog(data) {
     addDialog({
-      title: title,
+      title: "编辑租户",
       props: {
         formInline: {
-          file: null
+          companyName: data.name,
+          tel: data.tel,
+          fax: data.fax,
+          address: data.address,
+          shortAddress: data.shortAddress,
+          bank: data.bank,
+          bankAddress: data.bankAddress,
+          swiftCode: data.swiftCode,
+          accountNo: data.accountNo
         }
       },
       width: "40%",
       draggable: true,
       fullscreen: deviceDetection(),
-      fullscreenIcon: false,
+      fullscreenIcon: true,
       closeOnClickModal: false,
-      contentRenderer: () =>
-        h(uploadForm, { ref: uploadFileRef, formInline: null }),
+      contentRenderer: () => h(editFormV2, { ref: formRef, formInline: null }),
       beforeSure: (done, { options }) => {
-        const FormRef = uploadFileRef.value.getRef();
-        const curData = options.props.formInline as FileUploadProps;
+        const FormRef = formRef.value.getRef();
+        const curData = options.props.formInline as EditFormItemProps;
         function chores() {
-          message("导入成功", {
+          message(`您编辑了名称为${curData.companyName}的租户`, {
             type: "success"
           });
           done(); // 关闭弹框
@@ -288,17 +265,14 @@ export function useRole(treeRef: Ref) {
         }
         FormRef.validate(valid => {
           if (valid) {
-            const formData = createFormData({
-              file: curData.file
-            });
-            importProduct(formData).then(() => chores());
+            updateTenant({ id: data.id, ...curData }).then(() => chores());
           }
         });
       }
     });
   }
 
-  /** 高亮当前权限选中行 */
+  /** 高亮当前选中行 */
   function rowStyle({ row: { id } }) {
     return {
       cursor: "pointer",
@@ -306,31 +280,8 @@ export function useRole(treeRef: Ref) {
     };
   }
 
-  /** 数据权限 可自行开发 */
-  // function handleDatabase() {}
-
-  const onQueryChanged = (query: string) => {
-    treeRef.value!.filter(query);
-  };
-
-  const filterMethod = (query: string, node) => {
-    return transformI18n(node.title)!.includes(query);
-  };
-
   onMounted(async () => {
     onSearch();
-  });
-
-  watch(isExpandAll, val => {
-    val
-      ? treeRef.value.setExpandedKeys(treeIds.value)
-      : treeRef.value.setExpandedKeys([]);
-  });
-
-  watch(isSelectAll, val => {
-    val
-      ? treeRef.value.setCheckedKeys(treeIds.value)
-      : treeRef.value.setCheckedKeys([]);
   });
 
   return {
@@ -339,25 +290,17 @@ export function useRole(treeRef: Ref) {
     curRow,
     loading,
     columns,
-    rowStyle,
     dataList,
-    treeData,
     treeProps,
-    isLinkage,
     pagination,
     isExpandAll,
     isSelectAll,
-    treeSearchValue,
-    // buttonClass,
+    getDetail,
+    rowStyle,
     onSearch,
     resetForm,
     openDialog,
-    openFileUploadDialog,
-    handleDelete,
-    filterMethod,
     transformI18n,
-    onQueryChanged,
-    // handleDatabase,
     handleSizeChange,
     handleCurrentChange,
     handleSelectionChange
