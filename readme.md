@@ -82,7 +82,7 @@ docker exec -i quotation_mysql mysql -uroot -pshiyuq know_your_quotation < migra
 - [X] 优化代码，减少冗余
 - [ ] 平台区分平台管理员、客户管理员、客户用户
 - [ ] 租户基本信息维护
-- [ ] 租户管理界面
+- [X] 租户管理界面
 - [ ] 客户用户管理界面
 - [ ] 密码重置界面
 
