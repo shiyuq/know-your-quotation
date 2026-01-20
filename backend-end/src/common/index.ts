@@ -7,7 +7,6 @@ export * from './filters/all-exception-filter';
 export * from './filters/business-exception-filter';
 
 export * from './guard/auth.guard';
-export * from './guard/role.guard';
 
 export * from './interceptor/global.interceptor';
 export * from './interceptor/logging.interceptor';

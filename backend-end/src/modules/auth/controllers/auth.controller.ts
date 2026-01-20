@@ -12,6 +12,6 @@ export class AuthController {
   @Post('login')
   @Permisson(PermissonEnum.authSignIn)
   signIn(@Body() signInDto: AuthLoginDto) {
-    return this.authService.signIn(signInDto.username, signInDto.password);
+    return this.authService.signIn(signInDto);
   }
 }

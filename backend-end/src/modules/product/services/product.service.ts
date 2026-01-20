@@ -16,6 +16,10 @@ import { ListProductSkuDto } from '../dto/list-product-sku.dto';
 import { ListProductDto } from '../dto/list-product.dto';
 import { ListSkuDto } from '../dto/list-sku.dto';
 import { DeleteSkuDto } from '../dto/delete-sku.dto';
+import {
+  getCurrentCtx,
+  getCurrentTenantOrThrow,
+} from '@/common/context/request-context';
 
 interface LeadinProductRow {
   order: number;
@@ -54,7 +58,8 @@ export class ProductService {
     private readonly utilService: UtilService,
   ) {}
 
-  async leadinProduct(user: UserInfo, buffer: any) {
+  async leadinProduct(buffer: any) {
+    const tenant = getCurrentTenantOrThrow();
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(buffer);
     const sheet = workbook.worksheets[0];
@@ -65,10 +70,7 @@ export class ProductService {
       .map((i) => workbook.getImage(i.imageId as any).buffer)
       .value();
 
-    const products: LeadinProductRow[] = this.resolveProductFromExcel(
-      user,
-      sheet,
-    );
+    const products: LeadinProductRow[] = this.resolveProductFromExcel(sheet);
 
     const uniqProductList = _.map(
       _.uniqBy(products, (i) => i.name),
@@ -91,7 +93,7 @@ export class ProductService {
         _.map(images, async (image) =>
           this.saveImage(
             {
-              tenantId: user.tenantId,
+              tenantId: tenant.tenantId!,
               buffer: image,
             },
             imageRepo,
@@ -103,7 +105,7 @@ export class ProductService {
         _.map(uniqProductList, async (product, index) => {
           return this.saveProduct(
             {
-              tenantId: user.tenantId,
+              tenantId: tenant.tenantId!,
               imageId: imageIds[index],
               name: product.name,
               desc: product.productDesc,
@@ -115,7 +117,6 @@ export class ProductService {
 
       for (const item of products) {
         const index = _.findIndex(uniqProductList, (i) => i.name === item.name);
-        item.imageId = imageIds[index];
         item.productId = productIds[index];
         const skuInfo = await this.saveSKU(item, skuRepo);
         result.push(_.omit(skuInfo, ['tenantId', 'createTime', 'updateTime']));
@@ -125,12 +126,13 @@ export class ProductService {
     return result;
   }
 
-  async listProductSku(user: UserInfo, dto: ListProductSkuDto) {
+  async listProductSku(dto: ListProductSkuDto) {
+    const tenant = getCurrentTenantOrThrow();
     const qb = this.skuRepository
       .createQueryBuilder('sku')
       .innerJoinAndSelect('sku.product', 'product')
       .innerJoinAndSelect('product.image', 'image')
-      .where('sku.tenantId = :tenantId', { tenantId: user.tenantId });
+      .where('sku.tenantId = :tenantId', { tenantId: tenant.tenantId });
 
     if (dto.productNo) {
       qb.andWhere('product.name LIKE :name', { name: `%${dto.productNo}%` });
@@ -174,10 +176,11 @@ export class ProductService {
     };
   }
 
-  async listProduct(user: UserInfo, dto: ListProductDto) {
+  async listProduct(dto: ListProductDto) {
+    const tenant = getCurrentTenantOrThrow();
     const res = await this.productRepository.find({
       where: {
-        tenantId: user.tenantId,
+        tenantId: tenant.tenantId,
         name: Like(`%${dto.productNo}%`),
         status: ProductStatus.Valid,
       },
@@ -187,10 +190,11 @@ export class ProductService {
     return { list: res };
   }
 
-  async listSku(user: UserInfo, dto: ListSkuDto) {
+  async listSku(dto: ListSkuDto) {
+    const tenant = getCurrentTenantOrThrow();
     const res = await this.skuRepository.find({
       where: {
-        tenantId: user.tenantId,
+        tenantId: tenant.tenantId,
         productId: dto.productId,
         status: ProductStatus.Valid,
       },
@@ -200,10 +204,11 @@ export class ProductService {
     return { list: res };
   }
 
-  async deleteSku(user: UserInfo, dto: DeleteSkuDto) {
+  async deleteSku(dto: DeleteSkuDto) {
+    const tenant = getCurrentTenantOrThrow();
     const sku = await this.skuRepository.findOne({
       where: {
-        tenantId: user.tenantId,
+        tenantId: tenant.tenantId,
         skuCode: dto.skuCode,
       },
     });
@@ -214,10 +219,11 @@ export class ProductService {
     return { skuCode: dto.skuCode };
   }
 
-  async offlineSku(user: UserInfo, dto: DeleteSkuDto) {
+  async offlineSku(dto: DeleteSkuDto) {
+    const tenant = getCurrentTenantOrThrow();
     const sku = await this.skuRepository.findOne({
       where: {
-        tenantId: user.tenantId,
+        tenantId: tenant.tenantId,
         skuCode: dto.skuCode,
       },
     });
@@ -236,7 +242,6 @@ export class ProductService {
     {
       tenantId,
       productId,
-      imageId,
       pricingType,
       attributeValue,
       skuCode,
@@ -257,7 +262,6 @@ export class ProductService {
     if (sku) {
       const updateFields = {
         productId,
-        imageId,
         desc,
         order,
         unit,
@@ -287,7 +291,6 @@ export class ProductService {
       tenantId,
       productId,
       skuCode,
-      imageId,
       desc,
       order,
       unit,
@@ -366,8 +369,9 @@ export class ProductService {
     return image.id;
   }
 
-  private resolveProductFromExcel(user: UserInfo, sheet: ExcelJS.Worksheet) {
+  private resolveProductFromExcel(sheet: ExcelJS.Worksheet) {
     // 表头数据映射
+    const tenant = getCurrentTenantOrThrow();
     const headerMap: Record<string, number> = {};
     sheet.getRow(1).eachCell((cell, col) => {
       headerMap[cell.text] = col;
@@ -397,7 +401,7 @@ export class ProductService {
         length: Number(length),
         width: Number(width),
         height: Number(height),
-        tenantId: user.tenantId,
+        tenantId: tenant.tenantId!,
         productId: '',
         imageId: '',
       };

@@ -9,7 +9,7 @@ import { Observable, catchError, tap, throwError } from 'rxjs';
 import { AllConfigType } from '@/config';
 import { ConfigService } from '@nestjs/config';
 import { KafkaProducerService } from '@/modules/global/kafka/services/kafka-producer.service';
-import { randomUUID } from 'crypto';
+import { getCurrentCtx } from '@/common/context/request-context';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
@@ -29,20 +29,16 @@ export class LoggingInterceptor implements NestInterceptor {
     const req = ctx.getRequest<any>();
     const res = ctx.getResponse<any>();
 
-    // 生成 traceId 并挂到请求上
-    const traceId = randomUUID();
-    req.traceId = traceId;
-
     // 开始计时
     const startTime = process.hrtime.bigint();
     const timestamp = new Date().toISOString();
 
     return next.handle().pipe(
       tap((responseBody) => {
-        this.logSuccess(req, res, responseBody, startTime, traceId, timestamp);
+        this.logSuccess(req, res, responseBody, startTime, timestamp);
       }),
       catchError((err) => {
-        this.logError(req, res, err, startTime, traceId, timestamp);
+        this.logError(req, res, err, startTime, timestamp);
         return throwError(() => err);
       }),
     );
@@ -53,9 +49,9 @@ export class LoggingInterceptor implements NestInterceptor {
     res: any,
     responseBody: any,
     startTime: bigint,
-    traceId: string,
     timestamp: string,
   ) {
+    const ctx = getCurrentCtx();
     const endTime = process.hrtime.bigint();
     const durationMs = Number(endTime - startTime) / 1_000_000;
 
@@ -70,9 +66,10 @@ export class LoggingInterceptor implements NestInterceptor {
       env: this.appInfo.env,
       appName: this.appInfo.serviceName,
       timestamp,
-      traceId,
-      userId: req.user?.sub,
-      tenantId: req.user?.tenantId,
+      requestId: ctx.requestId,
+      traceId: ctx.traceId,
+      userId: ctx.user?.userId,
+      tenantId: ctx.tenant?.tenantId,
       level,
       type: 'success',
       request: {
@@ -87,7 +84,7 @@ export class LoggingInterceptor implements NestInterceptor {
         // body: responseBody, // 可选：是否记录响应体
       },
       client: {
-        ip: req.ip,
+        ip: ctx.ip,
         userAgent: req.headers['user-agent'],
       },
     };
@@ -101,9 +98,9 @@ export class LoggingInterceptor implements NestInterceptor {
     res: any,
     err: any,
     startTime: bigint,
-    traceId: string,
     timestamp: string,
   ) {
+    const ctx = getCurrentCtx();
     const endTime = process.hrtime.bigint();
     const durationMs = Number(endTime - startTime) / 1_000_000;
 
@@ -118,9 +115,10 @@ export class LoggingInterceptor implements NestInterceptor {
       env: this.appInfo.env,
       appName: this.appInfo.serviceName,
       timestamp,
-      traceId,
-      userId: req.user?.sub,
-      tenantId: req.user?.tenantId,
+      requestId: ctx.requestId,
+      traceId: ctx.traceId,
+      userId: ctx.user?.userId,
+      tenantId: ctx.tenant?.tenantId,
       level: 'error' as const,
       type: 'error',
       request: {
@@ -138,7 +136,7 @@ export class LoggingInterceptor implements NestInterceptor {
         durationMs,
       },
       client: {
-        ip: req.ip,
+        ip: ctx.ip,
         userAgent: req.headers['user-agent'],
       },
     };

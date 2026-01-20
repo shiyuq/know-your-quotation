@@ -25,6 +25,7 @@ import {
   LocalCacheModule,
   ProductModule,
   QuotationModule,
+  SKUModule,
   TenantModule,
   TodoModule,
   UsersModule,
@@ -40,6 +41,7 @@ import {
 
 import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { AppController } from './app.controller';
+import { AuthContextMiddleware } from '@/common/middleware/auth-context.middleware';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CacheableMemory } from 'cacheable';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -168,6 +170,7 @@ import { jwtConstants } from '@/constants';
     KafkaModule,
     LocalCacheModule,
     TenantModule,
+    SKUModule,
   ],
   controllers: [AppController],
   providers: [
@@ -214,7 +217,7 @@ import { jwtConstants } from '@/constants';
   ],
 })
 export class AppModule {
-  // configure(consumer: MiddlewareConsumer) {
-  //   consumer.apply(HttpLoggerMiddleware).forRoutes('*'); // 对所有路由生效
-  // }
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(AuthContextMiddleware).forRoutes('*'); // 全局应用
+  }
 }

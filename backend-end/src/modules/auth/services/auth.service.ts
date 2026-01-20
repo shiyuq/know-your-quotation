@@ -4,6 +4,7 @@ import { GlobalRole } from '@/constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { AuthLoginDto } from '../dto/auth-login.dto';
 import { Repository, DataSource } from 'typeorm';
 import { UserEntity, TenantEntity } from '@/database/entities';
 import { UtilService } from '@/modules/global/util/services/util.service';
@@ -24,14 +25,15 @@ export class AuthService {
     private readonly utilService: UtilService,
   ) {}
 
-  async signIn(username: string, pass: string) {
+  async signIn(signInDto: AuthLoginDto) {
+    const { username, password } = signInDto;
     const user = await this.userRepository.findOne({
       where: { username },
     });
     if (!user) {
       return BusinessErrorHelper.User.userNotExist();
     }
-    if (!this.utilService.checkIsValidPwd(pass, user.salt, user.password)) {
+    if (!this.utilService.checkIsValidPwd(password, user.salt, user.password)) {
       return BusinessErrorHelper.User.userPwdError();
     }
     if (!user.tenantId && user.role !== GlobalRole.PLATFORM_ADMIN) {
@@ -50,8 +52,10 @@ export class AuthService {
       tenantInfo = { name: '平台管理员' };
     }
     const payload = {
-      sub: user.id,
       tenantId: user.tenantId,
+      tenantName: tenantInfo.name,
+      sub: user.id,
+      userId: user.id,
       username: user.username,
       role: user.role,
       status: user.status,
@@ -63,6 +67,7 @@ export class AuthService {
       tenantId: user.tenantId,
       tenantName: tenantInfo.name,
       role: user.role,
+      status: user.status,
     };
   }
 }

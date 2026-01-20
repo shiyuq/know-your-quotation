@@ -18,6 +18,7 @@ import {
   ProductEntity,
   TenantEntity,
 } from '@/database/entities';
+import { getCurrentTenantOrThrow } from '@/common/context/request-context';
 
 @Injectable()
 export class QuotationService {
@@ -37,22 +38,31 @@ export class QuotationService {
     private readonly utilService: UtilService,
   ) {}
 
-  async makeQuotation(user: UserInfo, dto: MakeQuotationDto) {
-    const { tenantId, sub: userId } = user;
+  async makeQuotation(dto: MakeQuotationDto) {
+    const tenant = getCurrentTenantOrThrow();
     const { customerId, products } = dto;
     const skus = await this.skuRepository.find({
-      where: { tenantId, skuCode: In(_.map(products, (i) => i.skuCode)) },
+      where: {
+        tenantId: tenant.tenantId,
+        skuCode: In(_.map(products, (i) => i.skuCode)),
+      },
       order: { order: 'ASC' },
     });
-    const [productList, imageList, tenantInfo] = await Promise.all([
+    const [productList, tenantInfo] = await Promise.all([
       this.productRepository.find({
-        where: { tenantId, id: In(_.map(skus, (i) => i.productId)) },
+        where: {
+          tenantId: tenant.tenantId,
+          id: In(_.map(skus, (i) => i.productId)),
+        },
       }),
-      this.imageRepository.find({
-        where: { tenantId, id: In(_.map(skus, (i) => i.imageId)) },
-      }),
-      this.tenantRepository.findOneBy({ id: tenantId }),
+      this.tenantRepository.findOneBy({ id: tenant.tenantId }),
     ]);
+    const imageList = await this.imageRepository.find({
+      where: {
+        tenantId: tenant.tenantId,
+        id: In(_.map(productList, (i) => i.imageId)),
+      },
+    });
     const productMap = _.keyBy(productList, 'id');
     const imageMap = _.keyBy(imageList, 'id');
     const skuMap = _.groupBy(skus, 'productId');
@@ -420,7 +430,7 @@ export class QuotationService {
       // 产品信息、sku信息
       const productInfo = productMap[productId];
       const skus = skuMap[productId];
-      const imageId = skus[0].imageId;
+      const imageId = productMap[productId].imageId;
 
       const rowHeight = skus.length === 1 ? minRowHeight * 2 : minRowHeight;
       const pictureStartRow = currentRow;

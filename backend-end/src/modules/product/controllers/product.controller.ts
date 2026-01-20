@@ -26,8 +26,6 @@ export class ProductController {
   @Permisson(PermissonEnum.leadinProduct)
   @UseInterceptors(FileInterceptor('file'))
   leadinProduct(
-    @Request() req: any,
-    @Body('tenantId') tenantId: string,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -41,20 +39,13 @@ export class ProductController {
     )
     file: Express.Multer.File,
   ) {
-    if (req.user.role === GlobalRole.PLATFORM_ADMIN) {
-      if (tenantId) {
-        req.user.tenantId = tenantId;
-      } else {
-        return BusinessErrorHelper.Platform.tenantIdRequired();
-      }
-    }
-    return this.productService.leadinProduct(req.user, file.buffer);
+    return this.productService.leadinProduct(file.buffer);
   }
 
   @Post('list-sku')
   @Permisson(PermissonEnum.listProductSku)
-  listAllSku(@Request() req: any, @Body() dto: ListProductSkuDto) {
-    return this.productService.listProductSku(req.user, dto);
+  listAllSku(@Body() dto: ListProductSkuDto) {
+    return this.productService.listProductSku(dto);
   }
 
   @Post('list')
@@ -62,25 +53,25 @@ export class ProductController {
   // @Cached({
   //   key: ({ body }) => `listProduct:${body.productNo}`,
   // })
-  listProduct(@Request() req: any, @Body() dto: ListProductDto) {
-    return this.productService.listProduct(req.user, dto);
+  listProduct(@Body() dto: ListProductDto) {
+    return this.productService.listProduct(dto);
   }
 
   @Post('sku')
   @Permisson(PermissonEnum.listSku)
-  listProductSku(@Request() req: any, @Body() dto: ListSkuDto) {
-    return this.productService.listSku(req.user, dto);
+  listProductSku(@Body() dto: ListSkuDto) {
+    return this.productService.listSku(dto);
   }
 
   @Post('delete-sku')
   @Permisson(PermissonEnum.deleteSku)
-  deleteSku(@Request() req: any, @Body() dto: DeleteSkuDto) {
-    return this.productService.deleteSku(req.user, dto);
+  deleteSku(@Body() dto: DeleteSkuDto) {
+    return this.productService.deleteSku(dto);
   }
 
   @Post('offline-sku')
   @Permisson(PermissonEnum.offlineSku)
-  offlineSku(@Request() req: any, @Body() dto: DeleteSkuDto) {
-    return this.productService.offlineSku(req.user, dto);
+  offlineSku(@Body() dto: DeleteSkuDto) {
+    return this.productService.offlineSku(dto);
   }
 }

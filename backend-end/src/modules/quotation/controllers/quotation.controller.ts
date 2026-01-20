@@ -10,7 +10,7 @@ export class QuotationController {
 
   @Post('make')
   @Permisson(PermissonEnum.makeQuotation)
-  makeQuotation(@Request() req: any, @Body() dto: MakeQuotationDto) {
-    return this.quotationService.makeQuotation(req.user, dto);
+  makeQuotation(@Body() dto: MakeQuotationDto) {
+    return this.quotationService.makeQuotation(dto);
   }
 }

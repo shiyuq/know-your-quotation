@@ -38,9 +38,6 @@ export class SKUEntity {
   @Column({ name: 'order' })
   order: number;
 
-  @Column({ name: 'image_id' })
-  imageId: string;
-
   @Column('decimal', { name: 'unit_price', precision: 10, scale: 2 })
   unitPrice: number;
 
@@ -66,11 +63,6 @@ export class SKUEntity {
   @ManyToOne(() => ProductEntity, (product) => product.skus)
   @JoinColumn({ name: 'product_id' })
   product: ProductEntity;
-
-  // 多对一关系：SKU → Image
-  @ManyToOne(() => ImageEntity, (image) => image.skus)
-  @JoinColumn({ name: 'image_id' })
-  image: ImageEntity;
 
   @Transform(({ value }) => moment(value).format('YYYY-MM-DD HH:mm:ss'), {
     toPlainOnly: true,

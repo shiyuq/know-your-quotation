@@ -6,5 +6,6 @@ export * from './global/util/util.module';
 export * from './global/kafka/kafka.module';
 export * from './global/cache/cache.module';
 export * from './product/product.module';
+export * from './sku/sku.module';
 export * from './quotation/quotation.module';
 export * from './tenant/tenant.module';
