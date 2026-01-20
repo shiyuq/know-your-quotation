@@ -9,7 +9,7 @@ export class QuotationController {
   constructor(private readonly quotationService: QuotationService) {}
 
   @Post('make')
-  @Permisson(PermissonEnum.makeQuotation)
+  @Permisson({ permission: PermissonEnum.makeQuotation })
   makeQuotation(@Body() dto: MakeQuotationDto) {
     return this.quotationService.makeQuotation(dto);
   }

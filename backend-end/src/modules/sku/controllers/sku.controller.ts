@@ -9,7 +9,7 @@ export class SKUController {
   constructor(private readonly skuService: SKUService) {}
 
   @Post('list')
-  @Permisson(PermissonEnum.listSku)
+  @Permisson({ permission: PermissonEnum.listSku })
   listSku(@Body() dto: ListSkuDto) {
     return this.skuService.listSku(dto);
   }

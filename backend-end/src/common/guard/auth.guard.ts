@@ -43,6 +43,8 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Invalid or expired token');
     }
 
+    const permissionInfo = this.reflector.get(Permisson, context.getHandler());
+
     if (ctx.user.role === GlobalRole.PLATFORM_ADMIN) {
       // 这里后续要注意，如果是代租户操作的话，需要拿 x-tenant-id 和 redis 暂存的数据对比
       return true;
@@ -54,10 +56,10 @@ export class AuthGuard implements CanActivate {
     // 如果不是管理员但是操作了其他租户
     if (ctx.user.tenantId !== ctx.tenant.tenantId) return false;
 
-    const permission = this.reflector.get(Permisson, context.getHandler());
-    if (!permission) return true;
+    if (!permissionInfo.permission) return true;
 
-    if (!_.includes(RolePermissions[ctx.user.role], permission)) return false;
+    if (!_.includes(RolePermissions[ctx.user.role], permissionInfo.permission))
+      return false;
 
     return true;
   }

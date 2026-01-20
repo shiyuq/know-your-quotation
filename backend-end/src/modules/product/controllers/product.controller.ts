@@ -23,7 +23,7 @@ export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
   @Post('leadin')
-  @Permisson(PermissonEnum.leadinProduct)
+  @Permisson({ permission: PermissonEnum.leadinProduct })
   @UseInterceptors(FileInterceptor('file'))
   leadinProduct(
     @UploadedFile(
@@ -43,13 +43,13 @@ export class ProductController {
   }
 
   @Post('list-sku')
-  @Permisson(PermissonEnum.listProductSku)
+  @Permisson({ permission: PermissonEnum.listProductSku })
   listAllSku(@Body() dto: ListProductSkuDto) {
     return this.productService.listProductSku(dto);
   }
 
   @Post('list')
-  @Permisson(PermissonEnum.listProduct)
+  @Permisson({ permission: PermissonEnum.listProduct })
   // @Cached({
   //   key: ({ body }) => `listProduct:${body.productNo}`,
   // })
@@ -58,19 +58,19 @@ export class ProductController {
   }
 
   @Post('sku')
-  @Permisson(PermissonEnum.listSku)
+  @Permisson({ permission: PermissonEnum.listSku })
   listProductSku(@Body() dto: ListSkuDto) {
     return this.productService.listSku(dto);
   }
 
   @Post('delete-sku')
-  @Permisson(PermissonEnum.deleteSku)
+  @Permisson({ permission: PermissonEnum.deleteSku })
   deleteSku(@Body() dto: DeleteSkuDto) {
     return this.productService.deleteSku(dto);
   }
 
   @Post('offline-sku')
-  @Permisson(PermissonEnum.offlineSku)
+  @Permisson({ permission: PermissonEnum.offlineSku })
   offlineSku(@Body() dto: DeleteSkuDto) {
     return this.productService.offlineSku(dto);
   }

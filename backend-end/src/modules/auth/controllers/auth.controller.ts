@@ -10,7 +10,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @Permisson(PermissonEnum.authSignIn)
+  @Permisson({ permission: PermissonEnum.authSignIn })
   signIn(@Body() signInDto: AuthLoginDto) {
     return this.authService.signIn(signInDto);
   }
