@@ -85,6 +85,7 @@ docker exec -i quotation_mysql mysql -uroot -pshiyuq know_your_quotation < migra
 - [X] 租户管理界面
 - [ ] 客户用户管理界面
 - [ ] 密码重置界面
+- [ ] 报价生成走消息队列异步处理
 
 ## 🔧 维护者
 
