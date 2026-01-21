@@ -98,4 +98,7 @@ docker exec -i quotation_mysql mysql -uroot -pshiyuq know_your_quotation < migra
 
 欢迎任何形式的贡献，包括但不限于提交 bug 报告、改进建议、代码提交、文档编写等。
 
+## 🙏 鸣谢
 
+* [vue-pure-admin](https://github.com/pure-admin/vue-pure-admin)
+* [nestjs](https://github.com/nestjs/nest)
