@@ -11,7 +11,7 @@ const TITLE = getConfig("Title");
     Copyright © 2025-present
     <a
       class="hover:text-primary!"
-      href="https://github.com/shiyuq"
+      href="https://github.com/shiyuq/know-your-quotation"
       target="_blank"
     >
       &nbsp;{{ TITLE }}
