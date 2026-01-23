@@ -26,33 +26,32 @@ export enum PermissonEnum {
   makeQuotation = 'make:quotation',
 }
 
-export const RolePermissions: Record<GlobalRole, string[]> = {
-  [GlobalRole.PLATFORM_ADMIN]: [
-    PermissonEnum.authSignIn,
-    PermissonEnum.registerTenant,
-    PermissonEnum.listTenant,
-    PermissonEnum.detailTenant,
-    PermissonEnum.deleteTenant,
-    PermissonEnum.enableTenant,
-    PermissonEnum.updateTenant,
-  ],
-  [GlobalRole.BOSS]: [
-    PermissonEnum.authSignIn,
-    PermissonEnum.leadinProduct,
-    PermissonEnum.makeQuotation,
-    PermissonEnum.listProduct,
-    PermissonEnum.listSku,
-    PermissonEnum.listProductSku,
-    PermissonEnum.deleteSku,
-    PermissonEnum.offlineSku,
-  ],
-  [GlobalRole.STAFF]: [
-    PermissonEnum.authSignIn,
-    PermissonEnum.makeQuotation,
-    PermissonEnum.listProduct,
-    PermissonEnum.listSku,
-    PermissonEnum.listProductSku,
-    PermissonEnum.deleteSku,
-    PermissonEnum.offlineSku,
-  ],
+// 员工权限
+const STAFF_PERMISSIONS = [
+  PermissonEnum.authSignIn,
+  PermissonEnum.makeQuotation,
+  PermissonEnum.listProduct,
+  PermissonEnum.listSku,
+  PermissonEnum.listProductSku,
+  PermissonEnum.deleteSku,
+  PermissonEnum.offlineSku,
+];
+
+// 老板权限
+const BOSS_PERMISSIONS = [...STAFF_PERMISSIONS, PermissonEnum.leadinProduct];
+
+// 平台管理员权限
+const PLATFORM_ADMIN_PERMISSIONS = [
+  ...BOSS_PERMISSIONS,
+  PermissonEnum.registerTenant,
+  PermissonEnum.listTenant,
+  PermissonEnum.detailTenant,
+  PermissonEnum.deleteTenant,
+  PermissonEnum.enableTenant,
+];
+
+export const RolePermissions: Record<GlobalRole, PermissonEnum[]> = {
+  [GlobalRole.PLATFORM_ADMIN]: PLATFORM_ADMIN_PERMISSIONS,
+  [GlobalRole.BOSS]: BOSS_PERMISSIONS,
+  [GlobalRole.STAFF]: STAFF_PERMISSIONS,
 };
