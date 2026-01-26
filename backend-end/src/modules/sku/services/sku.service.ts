@@ -5,8 +5,9 @@ import { ProductEntity, SKUEntity } from '@/database/entities';
 import { UtilService } from '@/modules/global/util/services/util.service';
 import { BusinessErrorHelper } from '@/common';
 import { ListSkuDto } from '../dto/list-sku.dto';
+import { DetailSkuDto } from '../dto/detail-sku.dto';
 import _ from 'lodash';
-import { PricingType, PricingImportType } from '@/constants';
+import { ProductStatus, PricingType, PricingImportType } from '@/constants';
 import { getCurrentCtx } from '@/common/context/request-context';
 
 @Injectable()
@@ -14,14 +15,9 @@ export class SKUService {
   constructor(
     @InjectRepository(SKUEntity)
     private readonly skuRepository: Repository<SKUEntity>,
-
-    @InjectRepository(ProductEntity)
-    private readonly productRepository: Repository<ProductEntity>,
-
-    private readonly utilService: UtilService,
   ) {}
 
-  // async createSku(user: UserInfo, dto: CreateSkuDto) {
+  // async createSku(dto: CreateSkuDto) {
   //   // 检查SKU编码是否已存在
   //   const existingSku = await this.skuRepository.findOne({
   //     where: {
@@ -65,7 +61,6 @@ export class SKUService {
     const qb = this.skuRepository
       .createQueryBuilder('sku')
       .innerJoinAndSelect('sku.product', 'product')
-      .innerJoinAndSelect('product.image', 'image')
       .where('sku.tenantId = :tenantId', { tenantId: ctx.tenant.tenantId });
 
     if (dto.productNo) {
@@ -101,7 +96,6 @@ export class SKUService {
         status: i.status,
         productName: i.product.name,
         productDesc: i.product.desc,
-        image: `data:image/png;base64,${i.product.image.base64Data}`,
         createTime: i.createTime,
       })),
       total,
@@ -110,131 +104,66 @@ export class SKUService {
     };
   }
 
-  // async findOneSku(user: UserInfo, skuId: string) {
-  //   const sku = await this.skuRepository.findOne({
-  //     where: {
-  //       id: skuId,
-  //       tenantId: user.tenantId,
-  //     },
-  //     relations: ['product'],
-  //   });
+  async getSku(dto: DetailSkuDto) {
+    const ctx = getCurrentCtx();
+    const sku = await this.skuRepository.findOne({
+      where: {
+        id: dto.id,
+        tenantId: ctx.tenant.tenantId,
+      },
+    });
+    if (!sku) {
+      throw BusinessErrorHelper.Platform.skuNotFound();
+    }
+    return sku;
+  }
 
-  //   if (!sku) {
-  //     throw BusinessErrorHelper.Platform.skuNotFound();
-  //   }
+  async offSellSku(dto: DetailSkuDto) {
+    const ctx = getCurrentCtx();
+    const sku = await this.skuRepository.findOne({
+      where: {
+        id: dto.id,
+        tenantId: ctx.tenant.tenantId,
+      },
+    });
+    if (!sku) {
+      throw BusinessErrorHelper.Platform.skuNotFound();
+    }
+    await this.skuRepository.update(dto.id, {
+      status: ProductStatus.InValid,
+    });
+    return true;
+  }
 
-  //   return {
-  //     id: sku.id,
-  //     skuCode: sku.skuCode,
-  //     productId: sku.productId,
-  //     productName: sku.product?.name,
-  //     pricingType: sku.pricingType,
-  //     attributeValue: sku.attributeValue,
-  //     desc: sku.desc,
-  //     order: sku.order,
-  //     unitPrice: sku.unitPrice,
-  //     unit: sku.unit,
-  //     weight: sku.weight,
-  //     length: sku.length,
-  //     width: sku.width,
-  //     height: sku.height,
-  //     status: sku.status,
-  //     createTime: sku.createTime,
-  //     updateTime: sku.updateTime,
-  //   };
-  // }
+  async onSellSku(dto: DetailSkuDto) {
+    const ctx = getCurrentCtx();
+    const sku = await this.skuRepository.findOne({
+      where: {
+        id: dto.id,
+        tenantId: ctx.tenant.tenantId,
+      },
+    });
+    if (!sku) {
+      throw BusinessErrorHelper.Platform.skuNotFound();
+    }
+    await this.skuRepository.update(dto.id, {
+      status: ProductStatus.Valid,
+    });
+    return true;
+  }
 
-  // async updateSku(user: UserInfo, skuId: string, dto: UpdateSkuDto) {
-  //   const sku = await this.skuRepository.findOne({
-  //     where: {
-  //       id: skuId,
-  //       tenantId: user.tenantId,
-  //     },
-  //   });
-
-  //   if (!sku) {
-  //     throw BusinessErrorHelper.Platform.skuNotFound();
-  //   }
-
-  //   // 如果更新了SKU编码，检查是否与其他SKU冲突
-  //   if (dto.skuCode && dto.skuCode !== sku.skuCode) {
-  //     const existingSku = await this.skuRepository.findOne({
-  //       where: {
-  //         tenantId: user.tenantId,
-  //         skuCode: dto.skuCode,
-  //         id: !skuId, // 排除当前SKU
-  //       },
-  //     });
-
-  //     if (existingSku) {
-  //       throw BusinessErrorHelper.Platform.skuAlreadyExists();
-  //     }
-  //   }
-
-  //   // 如果更新了产品ID，检查产品是否存在
-  //   if (dto.productId) {
-  //     const product = await this.productRepository.findOne({
-  //       where: {
-  //         id: dto.productId,
-  //         tenantId: user.tenantId,
-  //       },
-  //     });
-
-  //     if (!product) {
-  //       throw BusinessErrorHelper.Platform.productNotFound();
-  //     }
-  //   }
-
-  //   Object.assign(sku, dto);
-  //   const updatedSku = await this.skuRepository.save(sku);
-
-  //   return {
-  //     id: updatedSku.id,
-  //     skuCode: updatedSku.skuCode,
-  //     message: 'SKU updated successfully',
-  //   };
-  // }
-
-  // async removeSku(user: UserInfo, skuCode: string) {
-  //   const sku = await this.skuRepository.findOne({
-  //     where: {
-  //       skuCode,
-  //       tenantId: user.tenantId,
-  //     },
-  //   });
-
-  //   if (!sku) {
-  //     throw BusinessErrorHelper.Platform.skuNotFound();
-  //   }
-
-  //   await this.skuRepository.remove(sku);
-
-  //   return {
-  //     skuCode,
-  //     message: 'SKU deleted successfully',
-  //   };
-  // }
-
-  // async listSkuByProduct(user: UserInfo, productId: string) {
-  //   const skus = await this.skuRepository.find({
-  //     where: {
-  //       tenantId: user.tenantId,
-  //       productId,
-  //       status: 1, // 只返回有效的SKU
-  //     },
-  //     order: { order: 'ASC' },
-  //   });
-
-  //   return {
-  //     list: skus.map((sku) => ({
-  //       id: sku.id,
-  //       skuCode: sku.skuCode,
-  //       desc: sku.desc,
-  //       unitPrice: sku.unitPrice,
-  //       unit: sku.unit,
-  //       weight: sku.weight,
-  //       status: sku.status,
-  //     })),
-  //   };
-  // }
+  async deleteSku(dto: DetailSkuDto) {
+    const ctx = getCurrentCtx();
+    const sku = await this.skuRepository.findOne({
+      where: {
+        id: dto.id,
+        tenantId: ctx.tenant.tenantId,
+      },
+    });
+    if (!sku) {
+      throw BusinessErrorHelper.Platform.skuNotFound();
+    }
+    await this.skuRepository.delete(dto.id);
+    return true;
+  }
 }
