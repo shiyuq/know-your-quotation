@@ -10,6 +10,7 @@ import { User, UserSchema } from './schemas';
 
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { SKURepository } from './repository/sku.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
@@ -24,6 +25,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ]),
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
   ],
-  exports: [TypeOrmModule, MongooseModule], // 统一导出
+  providers: [SKURepository],
+  exports: [TypeOrmModule, MongooseModule, SKURepository], // 统一导出
 })
 export class DatabaseModule {}
