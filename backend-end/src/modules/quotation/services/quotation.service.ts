@@ -1,68 +1,59 @@
-import { Injectable } from '@nestjs/common';
-import moment from 'moment';
-import _ from 'lodash';
-import ExcelJS from 'exceljs';
-import type { Anchor } from 'exceljs';
-import child_process from 'child_process';
-import path from 'path';
-import sizeOf from 'image-size';
-
-import { PricingType } from '@/constants';
-import { UtilService } from '@/modules/global/util/services/util.service';
-import { MakeQuotationDto, ProductItemDto } from '../dto/make-quotation.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
 import {
-  SKUEntity,
   ImageEntity,
   ProductEntity,
+  SKUEntity,
   TenantEntity,
 } from '@/database/entities';
+import { MakeQuotationDto, ProductItemDto } from '../dto/make-quotation.dto';
+
+import type { Anchor } from 'exceljs';
+import ExcelJS from 'exceljs';
+import { ImageRepository } from '@/database/repository/image.repository';
+import { In } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { PricingType } from '@/constants';
+import { ProductRepository } from '@/database/repository/product.repository';
+import { SKURepository } from '@/database/repository/sku.repository';
+import { TenantRepository } from '@/database/repository/tenant.repository';
+import { UtilService } from '@/modules/global/util/services/util.service';
+import _ from 'lodash';
 import { getCurrentTenantOrThrow } from '@/common/context/request-context';
+import moment from 'moment';
+import sizeOf from 'image-size';
+
+// import child_process from 'child_process';
+// import path from 'path';
+
 
 @Injectable()
 export class QuotationService {
   constructor(
-    @InjectRepository(SKUEntity)
-    private readonly skuRepository: Repository<SKUEntity>,
-
-    @InjectRepository(ImageEntity)
-    private readonly imageRepository: Repository<ImageEntity>,
-
-    @InjectRepository(ProductEntity)
-    private readonly productRepository: Repository<ProductEntity>,
-
-    @InjectRepository(TenantEntity)
-    private readonly tenantRepository: Repository<TenantEntity>,
+    private readonly skuRepository: SKURepository,
+    private readonly productRepository: ProductRepository,
+    private readonly tenantRepository: TenantRepository,
+    private readonly imageRepository: ImageRepository,
 
     private readonly utilService: UtilService,
   ) {}
 
   async makeQuotation(dto: MakeQuotationDto) {
-    const tenant = getCurrentTenantOrThrow();
-    const { customerId, products } = dto;
+    const { products } = dto;
     const skus = await this.skuRepository.find({
-      where: {
-        tenantId: tenant.tenantId,
-        skuCode: In(_.map(products, (i) => i.skuCode)),
-      },
+      where: { skuCode: In(_.map(products, (i) => i.skuCode)) },
       order: { order: 'ASC' },
     });
     const [productList, tenantInfo] = await Promise.all([
       this.productRepository.find({
-        where: {
-          tenantId: tenant.tenantId,
-          id: In(_.map(skus, (i) => i.productId)),
-        },
+        where: { id: In(_.map(skus, (i) => i.productId)) },
       }),
-      this.tenantRepository.findOneBy({ id: tenant.tenantId }),
+      this.tenantRepository.findOneBy({
+        id: getCurrentTenantOrThrow().tenantId,
+      }),
     ]);
     const imageList = await this.imageRepository.find({
-      where: {
-        tenantId: tenant.tenantId,
-        id: In(_.map(productList, (i) => i.imageId)),
-      },
+      where: { id: In(_.map(productList, (i) => i.imageId)) },
     });
+
     const productMap = _.keyBy(productList, 'id');
     const imageMap = _.keyBy(imageList, 'id');
     const skuMap = _.groupBy(skus, 'productId');

@@ -1,28 +1,25 @@
-import _ from 'lodash';
 import { BusinessErrorHelper } from '@/common';
-import { GlobalRole } from '@/constants';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Injectable } from '@nestjs/common';
-import { Repository, DataSource } from 'typeorm';
-import { UserEntity, TenantEntity } from '@/database/entities';
 import { CreateTenantDto } from '../dto/create-tenant.dto';
-import { ListTenantDto } from '../dto/list-tenant.dto';
+import { DataSource } from 'typeorm';
 import { DetailTenantDto } from '../dto/detail-tenant.dto';
+import { GlobalRole } from '@/constants';
+import { Injectable } from '@nestjs/common';
+import { ListTenantDto } from '../dto/list-tenant.dto';
+import { TenantRepository } from '@/database/repository/tenant.repository';
+import { TransactionService } from '@/modules/global/util/services/transaction.service';
 import { UpdateTenantDto } from '../dto/update-tenant.dto';
+import { UserRepository } from '@/database/repository/user.repository';
 import { UtilService } from '@/modules/global/util/services/util.service';
+import _ from 'lodash';
 
 @Injectable()
 export class TenantService {
   constructor(
     private readonly dataSource: DataSource,
-
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
-
-    @InjectRepository(TenantEntity)
-    private readonly tenantRepository: Repository<TenantEntity>,
-
+    private readonly userRepository: UserRepository,
+    private readonly tenantRepository: TenantRepository,
     private readonly utilService: UtilService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   async registerTenant(createTenantDto: CreateTenantDto): Promise<boolean> {
@@ -33,6 +30,8 @@ export class TenantService {
     if (tenantExist) {
       return BusinessErrorHelper.User.tenantExist();
     }
+
+    await this.transactionService.required(async () => {});
 
     const result = await this.dataSource.transaction(async (manager) => {
       const tenant = this.tenantRepository.create({
@@ -57,32 +56,6 @@ export class TenantService {
   }
 
   async listTenant(listTenantDto: ListTenantDto) {
-    // 方式1: 原始查询（QueryBuilder）(但是返回全量字段, 不建议使用)
-    // const { pageSize, pageIndex, companyName } = listTenantDto;
-    // const queryBuilder = this.tenantRepository.createQueryBuilder('tenant');
-    // if (companyName) {
-    //   queryBuilder.where('tenant.name LIKE :companyName', {
-    //     companyName: `%${companyName}%`,
-    //   });
-    // }
-    // const [list, total] = await queryBuilder
-    //   .orderBy('tenant.createTime', 'DESC')
-    //   .limit(pageSize)
-    //   .offset((pageIndex - 1) * pageSize)
-    //   .getManyAndCount();
-    // return {
-    //   list: _.map(list, (i) => ({
-    //     id: i.id,
-    //     name: i.name,
-    //     tel: i.tel,
-    //     createTime: i.createTime,
-    //     updateTime: i.updateTime,
-    //   })),
-    //   total,
-    //   currentPage: listTenantDto.pageIndex,
-    //   pageSize: listTenantDto.pageSize,
-    // };
-
     const { pageSize, pageIndex, companyName, valid } = listTenantDto;
 
     // 1️⃣ 创建 QueryBuilder
