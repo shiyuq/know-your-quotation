@@ -8,19 +8,16 @@ import {
 } from 'typeorm';
 
 import { Injectable } from '@nestjs/common';
+import { TransactionalAdapterTypeOrm } from '@nestjs-cls/transactional-adapter-typeorm';
 import { getCurrentTenantOrThrow } from '@/common/context/request-context';
 import { getTxManager } from '@/common/context/transaction-context';
 
 @Injectable()
-export abstract class BaseRepository<
-  T extends ObjectLiteral,
-> extends Repository<T> {
+export abstract class BaseRepository<T extends ObjectLiteral> {
   constructor(
     protected readonly repository: Repository<T>,
     protected readonly dataSource?: DataSource,
-  ) {
-    super(repository.target, repository.manager, repository.queryRunner);
-  }
+  ) {}
 
   protected tenantScoped = true;
 
@@ -81,6 +78,33 @@ export abstract class BaseRepository<
     return this.repository;
   }
 
+  async save(entity: T): Promise<T>;
+  async save(entities: T[]): Promise<T[]>;
+  async save(entityOrEntities: T | T[]): Promise<T | T[]> {
+    return this.getRepo().save(entityOrEntities as any);
+  }
+
+  create(entity: Partial<T>): T;
+  create(entities: Partial<T>[]): T[];
+  create(entityOrEntities: Partial<T> | Partial<T>[]): T | T[] {
+    return this.getRepo().create(entityOrEntities as any);
+  }
+
+  async delete(criteria: any) {
+    return this.getRepo().delete(criteria);
+  }
+
+  async remove(entity: T): Promise<T>;
+  async remove(entities: T[]): Promise<T[]>;
+  async remove(entityOrEntities: T | T[]): Promise<T | T[]> {
+    return this.getRepo().remove(entityOrEntities as any);
+  }
+
+  async update(criteria: any, entity: Partial<T>): Promise<any> {
+    const repo = this.getRepo();
+    return repo.update(criteria, entity);
+  }
+
   async find(options?: FindManyOptions<T>): Promise<T[]> {
     return this.getRepo().find({
       ...options,
@@ -93,6 +117,14 @@ export abstract class BaseRepository<
       ...options,
       where: this.applyTenantFilter(options?.where),
     });
+  }
+
+  async findOneBy(where: FindOptionsWhere<T>): Promise<T | null> {
+    const filteredWhere = this.applyTenantFilter(where);
+    if (!filteredWhere) {
+      return this.getRepo().findOneBy(where);
+    }
+    return this.getRepo().findOneBy(filteredWhere as FindOptionsWhere<T>);
   }
 
   createQueryBuilder(alias?: string) {

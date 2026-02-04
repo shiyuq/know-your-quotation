@@ -5,7 +5,7 @@ import { SKUEntity } from '../entities';
 import { Injectable } from '@nestjs/common';
 import { ProductStatus } from '@/constants';
 
-interface ISkuListPaginationDto {
+interface IPaginationDto {
   productNo?: string;
   skuCode?: string;
   status?: ProductStatus;
@@ -25,7 +25,7 @@ export class SKURepository extends BaseRepository<SKUEntity> {
   }
 
   async getSkuListByPagination(
-    dto: ISkuListPaginationDto,
+    dto: IPaginationDto,
   ): Promise<[SKUEntity[], number]> {
     const { productNo, skuCode, status, pageIndex, pageSize } = dto;
     const qb = this.createQueryBuilder('sku').innerJoinAndSelect(
